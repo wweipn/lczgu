@@ -18,5 +18,7 @@ class Database:
         self.cursor.execute(sql)
         data = self.cursor.fetchone()
         return data
+
+    def close(self):
         self.cursor.close()
         self.conn.close()

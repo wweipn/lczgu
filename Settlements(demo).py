@@ -1,4 +1,4 @@
-import mysql_setting as ms
+import MysqlSetting as ms
 from exchange_rate import rate
 import pymysql
 

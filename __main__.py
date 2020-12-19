@@ -1,4 +1,4 @@
-import api_class as a
+import ApiClass as A
 import time
 import random
 
@@ -16,7 +16,7 @@ def create_GroupUser():
     """
     for i in range(group_count):
         num = random.randint(10000, 99999)
-        addUserGroup = a.ApiRequests(pf='admin').requests(url='/crm/group/baseSet', content={
+        addUserGroup = A.ApiRequests(pf='admin').requests(url='/crm/group/baseSet', content={
             "groupName": num,
             "company": f"com_{num}",
             "accountCurreny": "USD",
@@ -35,11 +35,11 @@ def create_GroupUser():
         else:
             print(f'账户组{num}创建异常,详情:\n', addUserGroup)
             break
-        getTradeVarity = a.ApiRequests(pf='admin').requests(method='get',
+        getTradeVarity = A.ApiRequests(pf='admin').requests(method='get',
                                                             url=f'/crm/group/getTradeVarity?groupId={groupId}')
         Id = getTradeVarity['data'][0]['id']
         tradeVarityId = getTradeVarity['data'][0]['tradeVarityId']
-        a.ApiRequests(pf='admin').requests(url='/crm/group/tradevarietySet', content={
+        A.ApiRequests(pf='admin').requests(url='/crm/group/tradevarietySet', content={
             "groupId": groupId,
             "tradeVarityList": [
                 {
@@ -61,7 +61,7 @@ def create_GroupUser():
             phoneNumHead = random.choice(['130', '131', '132', '133', '134', '135', '136', '137', '138'])
             phoneMain = str(random.randint(10000000, 99999999))
             qq = str(random.randint(10000, 9999999999))
-            addUser = a.ApiRequests(pf='admin').requests(url='/crm/account/openAccount', content={
+            addUser = A.ApiRequests(pf='admin').requests(url='/crm/account/openAccount', content={
                 "groupId": groupId,
                 "userName": qq,
                 "email": f"{qq}@qq.com",
@@ -83,7 +83,7 @@ def create_GroupUser():
             """
             账户充值
             """
-            userCharge = a.ApiRequests(pf='admin').requests(url='/crm/balance/depWithOpr', content={
+            userCharge = A.ApiRequests(pf='admin').requests(url='/crm/balance/depWithOpr', content={
                 "accountNo": f"{accountNo}", "dealType": 0, "operType": 0, "amount": "10000"})
             if userCharge['code'] == '0000':
                 print(f'账户{qq}充值成功')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     # time.sleep(20)
     # # 平仓
     # a.ApiRequests().closePosition()
-    riskAccountList = a.ApiRequests(pf='manager').requests(url='/manager/account/riskAccountList', content={
+    riskAccountList = A.ApiRequests(pf='manager').requests(url='/manager/account/riskAccountList', content={
         "marginCallLevel": ""
     })
     marginLevel = 0
