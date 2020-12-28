@@ -2,7 +2,7 @@ import requests
 import json
 import csv
 import Config
-from MysqlSetting import Database
+from Database import Database
 
 
 """
@@ -160,5 +160,3 @@ class Account:
         return admin_token
 
 
-a = Account()
-print(a.user_register(mobile='17199990009', r_mobile='18123929299'))

@@ -1,4 +1,4 @@
-import ApiClass
+import Request
 import Account
 import Captchas
 
@@ -10,7 +10,7 @@ def test_register():
     # su = get_short_url['message'][-6:]  # 通过下标获取su码
     # Account.user_token_dic = {}  # 清除登录态
 
-    res = ApiClass.ApiRequests()  # 实例化请求接口类1
+    res = Request.ApiRequests()  # 实例化请求接口类1
     su_code_get = res.requests(url=f'/distribution/su/visit?su=2umuia', method='get')  # 挂绑定关系
     assert su_code_get['code'] == 200
 
