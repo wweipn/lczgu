@@ -1,4 +1,10 @@
-dic = {'a': 1321321, 'b': 2384}
+"""
+测试用例执行文件
+"""
 
-for i, v in dic.items():
-    print(i, v)
+import pytest
+
+
+if __name__ == '__main__':
+    args = ['-s', '-q']
+    pytest.main(args)

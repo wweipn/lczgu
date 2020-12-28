@@ -9,7 +9,6 @@ import Config
 """
 
 
-# todo
 class ApiRequests:
 
     def __init__(self):
@@ -24,7 +23,7 @@ class ApiRequests:
             res = requests.post(f'{self.host}{url}', headers=self.headers, json=body)
         else:
             res = requests.post(f'{self.host}{url}', headers=self.headers)
-        time.sleep(0.5)
+        time.sleep(0.2)
         return {'text': json.loads(res.text),
                 'code': res.status_code,
                 'url': res.url,
@@ -38,10 +37,8 @@ class ApiRequests:
             res = requests.get(f'{self.host}{url}', headers=self.headers, json=body)
         else:
             res = requests.get(f'{self.host}{url}', headers=self.headers)
-        time.sleep(0.5)
+        time.sleep(0.2)
         return {'text': json.loads(res.text),
                 'code': res.status_code,
                 'url': res.url,
                 'header': res.request.headers}
-
-

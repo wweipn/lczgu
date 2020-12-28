@@ -1,4 +1,7 @@
-a = {"code": 1317,
-       "desc": 'null',
-       "mesg": 'null',
-       "data": 'null'}
+from Account import Account
+from ApiClass import ApiRequests
+
+userAccount = Account()
+userRequest = ApiRequests()
+
+
