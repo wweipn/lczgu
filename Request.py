@@ -27,12 +27,12 @@ class ApiRequests:
                 'url': res.url,
                 'header': res.request.headers}
 
-    def request_get(self, url, token=None, params=None, body=None, data=data):
+    def request_get(self, url, token=None, params=None, body=None, data=None):
         if token is not None:
             self.headers['Authorization'] = f'Bearer {token}'
         else:
             pass
-        res = requests.post(f'{self.host}{url}', headers=self.headers, params=params, json=body)
+        res = requests.post(f'{self.host}{url}', headers=self.headers, params=params, json=body, data=data)
         time.sleep(0.2)
         return {'text': json.loads(res.text),
                 'code': res.status_code,

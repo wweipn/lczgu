@@ -11,8 +11,9 @@ userRequest = ApiRequests()
 #     "pageSize": 10
 # })
 
-login = userRequest.request_post(url='/store/api/account/login', params={'code': '111111',
-                                                                         'source': 'IOS',
-                                                                         'mobile': '17199990008'})
-# print(getActivityBalanceList['text'])
-print(login['text'])
+
+def test_01():
+    login = userRequest.request_post(url='/store/api/account/login', params={'code': '111111',
+                                                                             'source': 'IOS',
+                                                                             'mobile': '17199990008'})
+    print(login['text'])
