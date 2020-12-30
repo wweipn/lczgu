@@ -3,6 +3,7 @@ import json
 import csv
 import Config
 from Database import Database
+from Request import ApiRequests
 
 
 """
@@ -10,15 +11,17 @@ from Database import Database
 """
 
 
-class Account:
+class Account(ApiRequests, Database):
 
-    def __init__(self):
-        self.host = Config.get_host()
+    def get_userinfo(self, **kwargs):
+        info = self.request_get('/store/api/account/userinfo', **kwargs)
+        recommend_id = info['text']['data']['recommendId']
+        return recommend_id
 
     """
     获取挂关系接口响应头token, 用于传递数据给注册接口的内部方法
     """
-    def __set_recommend__(self, mobile):
+    def set_recommend(self, mobile):
         # 创建数据库类的对象
         db_content = Database()
         # 执行sql语句,获取查询结果
@@ -30,7 +33,7 @@ class Account:
         # 关闭数据库连接
         db_content.close()
         # 调用绑定关系接口, 获取响应头的token后返回
-        res = requests.post(f'{self.host}/store/api/account/recommend?recommendId={recommend_id}')
+        res = self.request_post('/store/api/account/recommend', params={'recommend_id': recommend_id})
         access_token = res.headers['AccessToken']
         return access_token
 
@@ -41,12 +44,14 @@ class Account:
         r_mobile: 推荐人手机号
     """
     def user_register(self,  mobile, r_mobile):
-        access_token = self.__set_recommend__(r_mobile)
+        access_token = self.set_recommend(r_mobile)
         headers = {'Authorization': f'Bearer {access_token}'}
-        params = {'code': '111111',  # 验证码(当前测试环境去掉了校验,默认传111111)
-                  'mobile': mobile,  # 手机号
-                  'source': 'IOS'}  # ANDROID, H5, IOS, MINI
-        res = requests.post(f'{self.host}/store/api/account/login', params=params, headers=headers)
+        body = {
+             'code': '111111',  # 验证码(当前测试环境去掉了校验,默认传111111)
+             'mobile': mobile,  # 手机号
+             'source': 'IOS'  # ANDROID, H5, IOS, MINI
+        }
+        res = self.request_post('/store/api/account/login', body=body)
         response = json.loads(res.text)
         if response['code'] == 200:
             print(f'账号【{mobile}】注册成功')
@@ -90,13 +95,12 @@ class Account:
             csv_file_writer = csv.writer(UserTokenFile)
             csv_file_writer.writerow(['account', 'token'])
             for account in login_user_list:
-                params = {'mobile': account, 'code': '111111'}
-                res = requests.post(f'{self.host}/store/api/account/login', params=params)
-                response = json.loads(res.text)
-                if response['code'] != 200:
-                    print(f'【{account}】登录失败', response)
+                body = {'mobile': account, 'code': '111111'}
+                res = self.request_post('/store/api/account/login', body=body)
+                if res['text']['code'] != 200:
+                    print(f'【{account}】登录失败', res['text'])
                 else:
-                    token = response['data']['accessToken']
+                    token = res['text']['data']['accessToken']
                     csv_file_writer.writerow([account, token])
 
     """
@@ -108,9 +112,8 @@ class Account:
     def shop_login(self, username, password):
         params = {'username': username,
                   'password': password}
-        res = requests.post(f'{self.host}/store/seller/account/login', params=params)
-        response = json.loads(res.text)
-        shop_token = response['data']['access_token']
+        res = self.request_post('/store/seller/account/login', params=params)
+        shop_token = res['text']['data']['access_token']
         with open('D:/shop_token.csv', 'w', newline='', encoding='utf-8') as shopTokenFiles:
             admin_token_write = csv.writer(shopTokenFiles)
             admin_token_write.writerow([shop_token])
@@ -160,3 +163,9 @@ class Account:
         return admin_token
 
 
+a = Account()
+a.user_login(source=0, user_list=['18123929299'])
+user_token = a.get_user_token('18123929299')
+login_token = a.get_userinfo(token=user_token)
+print(login_token)
+# print(user_token)

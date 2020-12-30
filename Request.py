@@ -21,7 +21,6 @@ class ApiRequests:
         else:
             pass
         res = requests.post(f'{self.host}{url}', headers=self.headers, params=params, json=body, data=data)
-        time.sleep(0.2)
         return {'text': json.loads(res.text),
                 'code': res.status_code,
                 'url': res.url,
@@ -32,9 +31,19 @@ class ApiRequests:
             self.headers['Authorization'] = f'Bearer {token}'
         else:
             pass
-        res = requests.post(f'{self.host}{url}', headers=self.headers, params=params, json=body, data=data)
-        time.sleep(0.2)
-        return {'text': json.loads(res.text),
-                'code': res.status_code,
-                'url': res.url,
-                'header': res.request.headers}
+        res = requests.get(f'{self.host}{url}', headers=self.headers, params=params, json=body, data=data)
+        state_code = res.status_code
+        url = res.url
+        text = json.loads(res.text)
+        if state_code == 200:
+            return {'text': json.loads(res.text),
+                    'code': res.status_code,
+                    'url': res.url,
+                    'header': res.request.headers}
+        else:
+            print(f'''
+                    请求错误
+                    state_code: {state_code}
+                    url: {url}
+                    text: {text}
+            ''')
