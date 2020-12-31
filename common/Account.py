@@ -1,9 +1,8 @@
 import requests
 import json
 import csv
-import Config
-from Database import Database
-from Request import ApiRequests
+from common.Database import Database
+from common.Request import ApiRequests
 
 
 """
@@ -22,20 +21,18 @@ class Account(ApiRequests, Database):
     获取挂关系接口响应头token, 用于传递数据给注册接口的内部方法
     """
     def set_recommend(self, mobile):
-        # 创建数据库类的对象
-        db_content = Database()
-        # 执行sql语句,获取查询结果
-        select_account_id = db_content.select_one(sql=f"""
+        # 调用父类"Database"的查询方法,执行sql语句,获取查询结果
+        select_account_id = self.select_one(sql=f"""
         SELECT id FROM user_account WHERE mobile = {mobile}
         """)
         # 通过查询结果的下标获取推荐人的AccountId
         recommend_id = select_account_id[0]
-        # 关闭数据库连接
-        db_content.close()
+        # # 关闭数据库连接
+        # db_content.close()
         # 调用绑定关系接口, 获取响应头的token后返回
         res = self.request_post('/store/api/account/recommend', params={'recommend_id': recommend_id})
         access_token = res.headers['AccessToken']
-        return access_token
+        return res, access_token
 
     """
     用户注册方法
@@ -45,18 +42,17 @@ class Account(ApiRequests, Database):
     """
     def user_register(self,  mobile, r_mobile):
         access_token = self.set_recommend(r_mobile)
-        headers = {'Authorization': f'Bearer {access_token}'}
         body = {
              'code': '111111',  # 验证码(当前测试环境去掉了校验,默认传111111)
              'mobile': mobile,  # 手机号
              'source': 'IOS'  # ANDROID, H5, IOS, MINI
         }
-        res = self.request_post('/store/api/account/login', body=body)
-        response = json.loads(res.text)
-        if response['code'] == 200:
+        res = self.request_post('/store/api/account/login', body=body, access_token=access_token)
+        if res['text']['code'] == 200:
             print(f'账号【{mobile}】注册成功')
         else:
-            print(f'账号【{mobile}】注册失败，详情: {response}')
+            print(f"账号【{mobile}】注册失败，详情: {res['text']}")
+        return res
 
     """
     管理后台登录

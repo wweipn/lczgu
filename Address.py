@@ -1,5 +1,4 @@
-from Request import ApiRequests
-from Account import Account
+from common.Request import ApiRequests
 import random
 
 
