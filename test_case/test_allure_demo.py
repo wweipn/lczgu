@@ -8,7 +8,7 @@ import allure
 
 
 @allure.feature('购物车功能')  # 用feature说明产品需求
-class TestShoppingTrolley(object):
+class TestShoppingTrolley:
     @allure.story('加入购物车')  # 用story说明用户场景
     def test_add_shopping_trolley(self):
         login('刘春明', '密码')  # 步骤1，调用“step函数”

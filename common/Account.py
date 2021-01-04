@@ -91,7 +91,7 @@ class Account(ApiRequests, Database):
             csv_file_writer = csv.writer(UserTokenFile)
             csv_file_writer.writerow(['account', 'token'])
             for account in login_user_list:
-                body = {'mobile': account, 'code': '111111'}
+                body = {'mobile': account, 'code': '111111', "source": "ANDROID"}
                 res = self.request_post('/store/api/account/login', body=body)
                 if res['text']['code'] != 200:
                     print(f'【{account}】登录失败', res['text'])
@@ -131,7 +131,7 @@ class Account(ApiRequests, Database):
     """
     @staticmethod
     def get_user_token(mobile=None):
-        user_token_dic = {}
+        user_token_list = []
         # 读取存储token的csv文件,并写入字段user_token_dic中
         with open('D:/User_token.csv', 'r', encoding='utf-8') as UserTokenRead:
             csv_file_read = csv.reader(UserTokenRead)
@@ -139,12 +139,14 @@ class Account(ApiRequests, Database):
             for row in csv_file_read:
                 account = row[0]
                 token = row[1]
-                user_token_dic[account] = token
+                user_token_list.append((account, token))
         # 如果没有传入mobile参数,返回user_token_dic,否则返回账户对应的token
         if mobile is None:
-            return user_token_dic
+            return user_token_list
         else:
-            return user_token_dic[mobile]
+            for i in user_token_list:
+                if i[0] == mobile:
+                    return i[1]
 
     """
     获取管理后台token
@@ -158,10 +160,3 @@ class Account(ApiRequests, Database):
                 admin_token = row[0]
         return admin_token
 
-
-a = Account()
-a.user_login(source=0, user_list=['18123929299'])
-user_token = a.get_user_token('18123929299')
-login_token = a.get_userinfo(token=user_token)
-print(login_token)
-# print(user_token)

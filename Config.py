@@ -8,8 +8,8 @@
 def get_host(env='dev'):
     url = ''
     if env == 'dev':
-        url = 'http://192.168.1.15:8001'  # 吕文波本地环境
-        # url = 'http://192.168.1.43:8001'  # 江平本地环境
+        # url = 'http://192.168.1.15:8001'  # 吕文波本地环境
+        url = 'http://192.168.1.43:8001'  # 江平本地环境
     elif env == 'test':
         url = 'test_host'  # 暂时还不知道测试环境的地址
     elif env == 'pro':

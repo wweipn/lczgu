@@ -36,9 +36,9 @@ class Database:
         select_result = self.cursor.fetchall()
         return select_result
 
-    """
-    关闭数据库连接方法,完成所有数据库增删改查操作后调用
-    """
-    def __del__(self):
-        self.cursor.close()
-        self.conn.close()
+    # """
+    # 关闭数据库连接方法,完成所有数据库增删改查操作后调用
+    # """
+    # def __del__(self):
+    #     self.cursor.close()
+    #     self.conn.close()

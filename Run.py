@@ -6,7 +6,7 @@ import pytest
 from common import Shell
 
 if __name__ == '__main__':
-    args = ['-s', 'D:\\PythonProject\\Lczgu\\test_case\\test_allure_demo.py', '--alluredir', './report/reportallure/']
+    args = ['-s', 'D:\\PythonProject\\Lczgu\\test_case\\test_account.py', '--alluredir', './report/reportallure/']
     # args = ['-s', '-q']
     pytest.main(args)
     try:
