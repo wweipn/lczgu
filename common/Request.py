@@ -3,7 +3,6 @@ import json
 import time
 import Config
 
-
 """
 接口请求类
 """
@@ -12,6 +11,10 @@ import Config
 class ApiRequests:
     host = Config.get_host()
 
+    """
+    基于requests框架封装,提供给post请求方式的接口所使用的方法
+    """
+
     def request_post(self, url, token=None, params=None, body=None, data=None, **kwargs):
         headers = {**kwargs}
         if token is not None:
@@ -19,10 +22,21 @@ class ApiRequests:
         else:
             pass
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
-        return {'text': json.loads(res.text),
-                'code': res.status_code,
-                'url': res.url,
-                'header': res.request.headers}
+        result = {
+            'text': json.loads(res.text),
+            'status_code': res.status_code,
+            'code': json.loads(res.text)['code'],
+            'desc': json.loads(res.text)['desc'],
+            'data': json.loads(res.text)['data'],
+            'url': res.url,
+            'req_header': res.request.headers,
+            'rep_header': res.headers
+        }
+        return result
+
+    """
+       基于requests框架封装,提供给get请求方式的接口所使用的方法
+    """
 
     def request_get(self, url, token=None, params=None, body=None, data=None, **kwargs):
         headers = {**kwargs}
@@ -31,18 +45,14 @@ class ApiRequests:
         else:
             pass
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
-        state_code = res.status_code
-        url = res.url
-        text = json.loads(res.text)
-        if state_code == 200:
-            return {'text': json.loads(res.text),
-                    'code': res.status_code,
-                    'url': res.url,
-                    'header': res.request.headers}
-        else:
-            print(f'''
-                    调用异常
-                    state_code: {state_code}
-                    url: {url}
-                    text: {text}
-            ''')
+        result = {
+            'text': json.loads(res.text),
+            'status_code': res.status_code,
+            'code': json.loads(res.text)['code'],
+            'desc': json.loads(res.text)['desc'],
+            'data': json.loads(res.text)['data'],
+            'url': res.url,
+            'req_header': res.request.headers,
+            'rep_header': res.headers
+        }
+        return result

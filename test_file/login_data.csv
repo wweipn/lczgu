@@ -1,0 +1,7 @@
+url,code,mobile,source,text,test
+/store/api/account/login,111111,18123929299,ANDROID,正常登录,api['code'] == 200
+/store/api/account/login,,18123929299,ANDROID,无验证码登录,api['code'] != 200
+/store/api/account/login,11111,,ANDROID,无手机号登录,api['code'] != 200
+/store/api/account/login,11111,18123929299,,无来源登录,api['code'] != 200
+/store/api/account/login,11111,1812392929,ANDROID,错误格式手机号登录,api['code'] != 200
+/store/api/account/login,11111,fdsajifosa,ANDROID,非法字符登录,api['code'] != 200

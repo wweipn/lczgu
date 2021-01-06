@@ -1,25 +1,62 @@
 import common
 import allure
 import pytest
+import time
 
-# 获取数据库中最新的登录账号
-last_number = common.db.select_one(sql="""
-SELECT mobile FROM user_account WHERE mobile LIKE '1719999%' ORDER BY mobile desc LIMIT 1
-""")[0]
-register_account_list = [str(int(last_number) + 1)]
-print(register_account_list)
+login_value, login_data = common.file_read(file_path='D:/login_data.csv')
 
 
-@pytest.mark.parametrize('mobile', register_account_list)
 @allure.feature('账户模块')
 class TestAccount:
-    @allure.story('注册功能')
-    def test_register(self, mobile):
-        with allure.step(f'账号注册【{mobile}】'):
-            body = {'source': 'ANDROID', 'mobile': mobile, 'code': '111111'}
-            allure.attach(f'请求参数:{body}', f'请求接口(/store/api/account/login)')  # attach可以打印一些附加信息
-            login = common.req.request_post('/store/api/account/login', body=body)
-            allure.attach(f"返回结果:{login['text']}", '返回参数')
-            assert login['text']['code'] == 200
-            assert login['text']['desc'] == '请求成功'
+
+    @allure.title('验证不绑定关系注册')
+    @allure.description('这个是用例的描述内容')
+    @allure.story('不绑定关系注册')
+    def test_register(self):
+        with allure.step('注册'):
+            register, mobile = common.account.user_register()
+            allure.attach(f"注册账号:{mobile}", '请求参数')
+            allure.attach(f"返回结果:{register['text']}", '返回结果')
+            assert register['text']['code'] == 200
+            assert register['text']['desc'] == '请求成功'
+            time.sleep(1)
+
+    @allure.title('验证绑定关系注册')
+    @allure.story('绑定关系注册')
+    def test_has_recommend_register(self):
+        with allure.step('注册'):
+            register, mobile = common.account.user_register(r_mobile='18123929299')
+            allure.attach(f"注册账号: {mobile}, 邀请人账号: 18123929299", '请求参数')
+            allure.attach(f"{register['text']}", '返回结果')
+            assert register['text']['code'] == 200
+            assert register['text']['desc'] == '请求成功'
+            # 查询注册账号的邀请人account_id
+            register_recommend_id = common.db.select_one(f"""
+            select 
+                recommend_id_lv1
+            from 
+                user_info 
+            where 
+                account_id = (SELECT id FROM user_account WHERE mobile = '{mobile}')
+            """)[0]
+            # 查询邀请人的account_id
+            r_mobile_account_id = common.db.select_one(f"""
+            SELECT id FROM user_account WHERE mobile = '18123929299'
+            """)[0]
+            assert register_recommend_id == r_mobile_account_id
+
+    @pytest.mark.parametrize(login_value, login_data)
+    @allure.title('{text}')
+    @allure.story('验证登录功能')
+    def test_login(self, url, code, mobile, source, text, test):
+        body = {
+            'mobile': mobile,
+            'code': code,
+            'source': source
+        }
+        with allure.step(f'请求接口{url}'):
+            allure.attach(str(body), '请求参数')
+            api = common.req.request_post(url=url, body=body)
+            allure.attach(str(api['text']), '返回结果')
+            assert eval(test)
 

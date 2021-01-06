@@ -7,3 +7,5 @@
 *.iml
 /venv/
 /report/
+/allure-report/
+/allure-results/
