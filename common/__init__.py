@@ -7,3 +7,4 @@ from .File_read import file_read
 account = Account()
 req = ApiRequests()
 db = Database()
+address = Address()

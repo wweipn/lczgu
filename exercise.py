@@ -3,8 +3,9 @@
 # @Author: Waipang
 
 import common
+import os
 
 
-# eval("common.account.get_new_mobile() == '17199990082'")
-# print(common.account.get_new_mobile() == '17199990082')
-print(eval(common.account.get_new_mobile()))
+# login = common.account.user_login(user_list=['18123929299'])
+# token = common.account.get_user_token('18123929299')
+print(os.getcwd())
