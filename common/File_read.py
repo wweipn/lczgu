@@ -18,9 +18,8 @@ def file_read(file_path):
         for row in csv_file_read:
             data_list.append(row)
         key = ', '.join(data_list[0])
-        value = data_list[1:]
+        if len(data_list[1:]) == 1:
+            value = data_list[1:][0]
+        else:
+            value = data_list[1:]
         return key, value
-
-
-if __name__ == '__main__':
-    print(file_read('../test_file/user_list.csv'))
