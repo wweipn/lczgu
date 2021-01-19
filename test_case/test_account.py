@@ -3,7 +3,7 @@ import allure
 import pytest
 import time
 
-login_value, login_data = common.file_read(file_path='D:/login_data.csv')
+login_value, login_data = common.file_read(file_path='D:/PythonProject/Lczgu/test_file/login_data.csv')
 
 
 @allure.feature('账户模块')
@@ -60,3 +60,7 @@ class TestAccount:
             allure.attach(str(api['text']), '返回结果')
             assert eval(test)
 
+
+# if __name__ == '__main__':
+#     A = TestAccount()
+#     A.test_register()

@@ -12,6 +12,7 @@ class Database:
     初始化数据库连接
     """
     def __init__(self):
+
         self.conn = pymysql.connect(
             host='192.168.1.10',
             port=3306,

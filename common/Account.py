@@ -6,10 +6,10 @@ from common.Request import ApiRequests
 
 
 class Account(ApiRequests, Database):
-
     """
     账户类,包含商家/用户/管理后台的注册/登录以及获取token的方法
     """
+
     def get_userinfo(self, mobile):
         """
         查询用户信息(目前返回值只有推荐码ID的参数,后期需要再进行调整)
@@ -76,12 +76,12 @@ class Account(ApiRequests, Database):
         :param password: 管理后台密码
         :return:
         """
-        params = {'username': username,
-                  'password': password}
-        res = requests.post(f'{self.host}/store/manage/account/login', params=params)
-        response = json.loads(res.text)
-        admin_token = response['data']['access_token']
-        with open('D:/PythonProject/Lczgu/test_file/admin_token.csv', 'w', newline='', encoding='utf-8') as AdminTokenFiles:
+        body = {'username': username,
+                'password': password}
+        res = self.request_post('/store/manage/account/login', body=body)
+        admin_token = res['data']['accessToken']
+        with open('D:/PythonProject/Lczgu/test_file/admin_token.csv', 'w', newline='',
+                  encoding='utf-8') as AdminTokenFiles:
             admin_token_write = csv.writer(AdminTokenFiles)
             admin_token_write.writerow([admin_token])
 
@@ -129,11 +129,12 @@ class Account(ApiRequests, Database):
         :param password: 商家密码
         :return:
         """
-        params = {'username': username,
-                  'password': password}
-        res = self.request_post('/store/seller/account/login', params=params)
-        shop_token = res['text']['data']['access_token']
-        with open('D:/PythonProject/Lczgu/test_file/shop_token.csv', 'w', newline='', encoding='utf-8') as shopTokenFiles:
+        body = {'username': username,
+                'password': password}
+        res = self.request_post('/store/seller/account/login', body=body)
+        shop_token = res['text']['data']['accessToken']
+        with open('D:/PythonProject/Lczgu/test_file/shop_token.csv', 'w', newline='',
+                  encoding='utf-8') as shopTokenFiles:
             admin_token_write = csv.writer(shopTokenFiles)
             admin_token_write.writerow([shop_token])
 
@@ -144,7 +145,7 @@ class Account(ApiRequests, Database):
     @staticmethod
     def get_shop_token():
         # 读取存储管理后台token的csv文件,并返回token信息
-        with open('D:/PythonProject/Lczgu/test_file/admin_token.csv', 'r', encoding='utf-8') as ShopTokenRead:
+        with open('D:/PythonProject/Lczgu/test_file/shop_token.csv', 'r', encoding='utf-8') as ShopTokenRead:
             csv_file_read = csv.reader(ShopTokenRead)
             for row in csv_file_read:
                 shop_token = row[0]

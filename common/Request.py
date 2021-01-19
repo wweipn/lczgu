@@ -30,7 +30,9 @@ class ApiRequests:
             'data': json.loads(res.text)['data'],
             'url': res.url,
             'req_header': res.request.headers,
-            'rep_header': res.headers
+            'rep_header': res.headers,
+            'body': res.request.body
+
         }
         return result
 
@@ -48,9 +50,7 @@ class ApiRequests:
         result = {
             'text': json.loads(res.text),
             'status_code': res.status_code,
-            'code': json.loads(res.text)['code'],
-            'desc': json.loads(res.text)['desc'],
-            'data': json.loads(res.text)['data'],
+
             'url': res.url,
             'req_header': res.request.headers,
             'rep_header': res.headers
