@@ -14,15 +14,42 @@ old_db.database = Config.get_db(env='old_test')
 common.account.admin_login()
 admin_token = common.account.get_admin_token()
 
-# 查询新创建的一级分类
-result = common.db.select_all(sql="""
-SELECT id, name FROM goods_category WHERE `create_time` > "2021-01-19 17:48:00"
+# 查询老系统的一级分类
+lv1_category_result = old_db.select_all(sql="""
+SELECT 
+    name 
+FROM 
+    es_category 
+WHERE 
+    parent_id = '0'
+""")
+
+# 遍历老系统一级分类并添加一级分类
+for lv1_category in lv1_category_result:
+    lv1_category_name = lv1_category[0]
+    body = {
+        "isShow": 1,
+        "level": 1,
+        "name": lv1_category_name,
+        "sort": 1
+    }
+    add_lv1_category = common.req.request_post(url='/store/manage/category/save', token=admin_token, body=body)
+
+# 查询新系统的一级分类
+new_sys_lv1_category_result = common.db.select_all(sql="""
+SELECT
+    id,
+    name
+FROM
+    goods_category 
+WHERE
+    level = 1
 """)
 
 # 遍历新系统的一级分类
-for category in result:
-    lv1_category_id = category[0]
-    lv1_category_name = category[1]
+for new_sys_lv1_category in new_sys_lv1_category_result:
+    lv1_category_id = new_sys_lv1_category[0]
+    lv1_category_name = new_sys_lv1_category[1]
     # print(lv1_category_id, lv1_category_name)
 
     # 查询老系统二级分类
@@ -42,17 +69,16 @@ for category in result:
         lv2_category_image_url = lv2_category[1]
         print({"parentId": lv1_category_id, "name": lv2_category_name, "logo": lv2_category_image_url})
         body = {
-              "isShow": 1,
-              "level": 2,
-              "logo": lv2_category_image_url,
-              "name": lv2_category_name,
-              "parentId": lv1_category_id,
-              "sort": 1
+            "isShow": 1,
+            "level": 2,
+            "logo": lv2_category_image_url,
+            "name": lv2_category_name,
+            "parentId": lv1_category_id,
+            "sort": 1
         }
         add_lv2_category = common.req.request_post('/store/manage/category/save', token=admin_token, body=body)
         time.sleep(0.2)
     print(f'【{lv1_category_name}】二级分类添加完成')
-
 
 # 查询新系统二级分类
 new_sys_category_result = common.db.select_all(sql=f"""
@@ -88,15 +114,14 @@ for new_sys_category in new_sys_category_result:
         lv3_category_name = lv3_category[0]
         lv3_category_image_url = lv3_category[1]
         body = {
-              "isShow": 1,
-              "level": 3,
-              "logo": lv3_category_image_url,
-              "name": lv3_category_name,
-              "parentId": new_lv2_category_id,
-              "sort": 1
+            "isShow": 1,
+            "level": 3,
+            "logo": lv3_category_image_url,
+            "name": lv3_category_name,
+            "parentId": new_lv2_category_id,
+            "sort": 1
         }
         add_lv3_category = common.req.request_post('/store/manage/category/save', token=admin_token, body=body)
         count += 1
         time.sleep(0.3)
         print(f'第【{count}】条数据添加成功')
-
