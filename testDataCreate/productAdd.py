@@ -99,8 +99,7 @@ def get_goods_sku_req_vo(goods_id, category_id=13509962146858926):
 
 
 def get_goods_spu_req_vo(goods_id):
-    result = old_db.select_one(sql=
-                                  f"""
+    result = old_db.select_one(sql=f"""
     SELECT
         goods_name, category_id, goods_id, brand_id, mobile_intro, original
     FROM
@@ -157,11 +156,15 @@ def get_goods_spu_req_vo(goods_id):
     return vo
 
 
+
+
+
 if __name__ == '__main__':
-    common.account.shop_login(username="shop_test_01", password="a123456")
-    shop_token = common.account.get_shop_token()
-    body = {
-        "goodsSpuReqVO": get_goods_spu_req_vo(goods_id='1172'),
-        "goodsSkuReqVO": get_goods_sku_req_vo(goods_id='1172')
-    }
-    add_goods = common.req.request_post(url="/store/seller/goodsManager/save", token=shop_token, body=body)
+    # common.account.shop_login(username="shop_test_01", password="a123456")
+    # shop_token = common.account.get_shop_token()
+    # body = {
+    #     "goodsSpuReqVO": get_goods_spu_req_vo(goods_id='1172'),
+    #     "goodsSkuReqVO": get_goods_sku_req_vo(goods_id='1172')
+    # }
+    # add_goods = common.req.request_post(url="/store/seller/goodsManager/save", token=shop_token, body=body)
+    print(set_brand_id_dic())
