@@ -145,10 +145,14 @@ def get_goods_spu_req_vo(goods_id):
     detail = []
     original = result[5]
 
-    # 判断商品主图列表是否为空或者有false字段,处理后有图片则写入
+    # 判断商品主图列表是否为空或者有布尔值,处理后有图片则写入
     if result[4] != '':
         if result[4].find('false') != -1:
-            image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None")))
+            if result[4].find('true') != -1:
+                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None"). \
+                                           replace("true", "None")))
+            else:
+                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None")))
         else:
             image_url_list = list(eval(result[4].replace("null", "None")))
         # 查询商品详情页图片,写入detail中
@@ -183,6 +187,7 @@ def get_goods_spu_req_vo(goods_id):
         # "specialContent": ",  # 特殊内容
         "detail": f'{detail}'.replace("'", '"'),  # 商品详情图
         "original": original,
+        "type": 0,  # 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
         "mainGallery": mainGallery,  # 商品主图
         "vipGallery": []  # vip主图
     }
@@ -260,9 +265,9 @@ def shop_create(shop_id):
 
 
 if __name__ == '__main__':
-    # shop_create(shop_id='54')
-    goods_data = get_shop_goods(shop_id='54')
-    common.account.shop_login(username='郓城梓诺', password='a123456')
+    # shop_create(shop_id='55')
+    goods_data = get_shop_goods(shop_id='55')
+    common.account.shop_login(username='灵堡贸易', password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
         add_goods(goods_id=data, shop_token=token)
