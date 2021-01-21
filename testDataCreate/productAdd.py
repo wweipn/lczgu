@@ -2,12 +2,29 @@
 # @Time: 2021/1/4 12:33
 # @Author: Waipang
 
-import common
 import Config
+import common
+from testDataCreate.categoryAdd import get_category_dic
+from testDataCreate.brandAdd import get_brand_id_dic
+import time
 
-# 链接老系统数据库
+# 连接老系统数据库
 old_db = common.Database()
 old_db.database = Config.get_db(env='old_test')
+
+# 获取品牌字典表
+brand_dic = get_brand_id_dic()
+
+# 获取分类字典表
+category_dic = get_category_dic()
+
+
+def get_parent_category_id(category):
+    result = common.db.select_one(sql=f"""
+    select parent_id from goods_category where id = {category}
+    """)
+    parent_id = result[0]
+    return parent_id
 
 
 # 返回商品sku信息VO
@@ -50,8 +67,9 @@ def get_specs_item_resp_vo_list(goods_id):
         return sku_vo
 
 
-def get_goods_sku_req_vo(goods_id, category_id=13509962146858926):
+def get_goods_sku_req_vo(goods_id):
     goods_sku_req_vo = []
+    # 查询商品的sku信息
     result = old_db.select_all(f"""
     SELECT
         specs,price,thumbnail,sku_id,cost
@@ -61,18 +79,18 @@ def get_goods_sku_req_vo(goods_id, category_id=13509962146858926):
         goods_id = '{goods_id}'
     """)
     count = 0
+    # 遍历商品sku查询结果
     for sku in result:
-
-        i_list_str = sku[0].replace("null", "None")
-        sku_spec_list = list(eval(i_list_str))
+        specs = sku[0]
         price = float(sku[1])
         thumbnail = sku[2]
         old_sku_id = sku[3]
         cost = float(sku[4])
 
+        # 往商品sku信息中插入数据
         goods_sku_req_vo.append(
             {
-                "categoryId": category_id,
+                # "categoryId": category_id,
                 "cost": cost,
                 "enableQuantity": 500,
                 "name": "",
@@ -84,17 +102,24 @@ def get_goods_sku_req_vo(goods_id, category_id=13509962146858926):
             }
         )
 
-        for spec_detail in sku_spec_list:
-            spec_name = spec_detail["spec_name"]
-            spec_value = spec_detail["spec_value"]
-            sku_detail = goods_sku_req_vo[count]["goodsSpecificationReqVO"]
-            goods_sku_req_vo[count]["name"] += spec_value + "; "
-            sku_detail.append({
-                "specName": spec_name,
-                "goodsSpecificationValueReqVO": [{"specName": spec_name, "specValue": spec_value}]
-            })
-        goods_sku_req_vo[count]["name"] = goods_sku_req_vo[count]["name"][:-2]
-        count += 1
+        # 如果商品规格表中有数据, 则进行遍历并把对应的值插入goodsSpecificationValueReqVO中
+        if specs is not None:
+            i_list_str = specs.replace("null", "None")
+            sku_spec_list = list(eval(i_list_str))
+            for spec_detail in sku_spec_list:
+                spec_name = spec_detail["spec_name"]
+                spec_value = spec_detail["spec_value"]
+                sku_detail = goods_sku_req_vo[count]["goodsSpecificationReqVO"]
+                goods_sku_req_vo[count]["name"] += spec_value + "; "
+                sku_detail.append({
+                    "specName": spec_name,
+                    "goodsSpecificationValueReqVO": [{"specName": spec_name, "specValue": spec_value}]
+                })
+            goods_sku_req_vo[count]["name"] = goods_sku_req_vo[count]["name"][:-2]
+            count += 1
+        else:
+            pass
+
     return goods_sku_req_vo
 
 
@@ -108,25 +133,31 @@ def get_goods_spu_req_vo(goods_id):
         goods_id = '{goods_id}'
     """)
     name = result[0]
-    category_id = result[1]
+    category_lv3_id = category_dic[result[1]]
+    category_lv2_id = get_parent_category_id(category_lv3_id)
+    category_lv1_id = get_parent_category_id(category_lv2_id)
     sn_goods_id = result[2]
-    brand_id = result[3]
-    image_url_list = list(eval(result[4].replace("null", "None")))
-    original = result[5]
-    mainGallery = []
+    brand_id = brand_dic[result[3]] if result[3] is not None else 0
     detail = []
+    original = result[5]
 
-    # 查询商品详情页图片,写入detail中
-    for goods_detail_image_url in image_url_list:
-        detail_url = goods_detail_image_url["content"]
-        detail.append({'url': detail_url})
+    # 判断商品主图列表是否为空或者有false字段,处理后有图片则写入
+    if result[4] != '':
+        if result[4].find('false') != -1:
+            image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None")))
+        else:
+            image_url_list = list(eval(result[4].replace("null", "None")))
+        # 查询商品详情页图片,写入detail中
+        for goods_detail_image_url in image_url_list:
+            detail_url = goods_detail_image_url["content"]
+            detail.append({"url": detail_url})
 
     # 获取商品主图,写入mainGallery中
-    main_image_result = old_db.select_all(sql=
-                                             f"""
-        SELECT thumbnail FROM es_goods_gallery WHERE goods_id = '{goods_id}'
-        """
-                                             )
+    main_image_result = old_db.select_all(sql=f"""
+    SELECT thumbnail FROM es_goods_gallery WHERE goods_id = '{goods_id}'
+    """
+                                          )
+    mainGallery = []
     for goods_main_image_url in main_image_result:
         main_image = goods_main_image_url[0]
         mainGallery.append({'url': main_image})
@@ -134,11 +165,11 @@ def get_goods_spu_req_vo(goods_id):
     vo = {
         "specsItemRespVOList": get_specs_item_resp_vo_list(goods_id=goods_id),
         "name": name,
-        "categoryId": 0,
-        "categoryId2": 134952418106245,
-        "categoryId3": 13509962146858926,
+        "categoryId": category_lv1_id,
+        "categoryId2": category_lv2_id,
+        "categoryId3": category_lv3_id,
         "sn": sn_goods_id,
-        "brandId": 0,  # 品牌ID
+        "brandId": brand_id,  # 品牌ID
         "enableQuantity": 1000,  # 库存总和
         "warnQuantity": 10,  # 预警库存
         "transfeeCharge": 1,  # 是否为买家承担运费 否：0 是：1
@@ -146,8 +177,7 @@ def get_goods_spu_req_vo(goods_id):
         "isSupportAfter": 1,  # 是否支持售后7天 0:否；1:是
         # "specialTitle": ",  # 特殊说明
         # "specialContent": ",  # 特殊内容
-        "detail": str(detail),  # 商品详情图
-        # "detail": '',  # 商品详情图
+        "detail": f'{detail}'.replace("'", '"'),  # 商品详情图
         "original": original,
         "mainGallery": mainGallery,  # 商品主图
         "vipGallery": []  # vip主图
@@ -156,15 +186,33 @@ def get_goods_spu_req_vo(goods_id):
     return vo
 
 
+def add_goods(goods_id, shop_token):
+    body = {
+        "goodsSpuReqVO": get_goods_spu_req_vo(goods_id),
+        "goodsSkuReqVO": get_goods_sku_req_vo(goods_id)
+    }
+    add = common.req.request_post(url="/store/seller/goodsManager/save", token=shop_token, body=body)
+    if add['code'] == 200:
+        print('商品添加成功')
+    else:
+        print(add['text'])
 
+
+def get_shop_goods(shop_id):
+    goods_list = []
+    goods_result = old_db.select_all(sql=f"""
+    SELECT goods_id FROM es_goods WHERE seller_id = '{shop_id}'
+    """)
+    for goods in goods_result:
+        goods_id = goods[0]
+        goods_list.append(goods_id)
+    return goods_list
 
 
 if __name__ == '__main__':
-    # common.account.shop_login(username="shop_test_01", password="a123456")
-    # shop_token = common.account.get_shop_token()
-    # body = {
-    #     "goodsSpuReqVO": get_goods_spu_req_vo(goods_id='1172'),
-    #     "goodsSkuReqVO": get_goods_sku_req_vo(goods_id='1172')
-    # }
-    # add_goods = common.req.request_post(url="/store/seller/goodsManager/save", token=shop_token, body=body)
-    print(set_brand_id_dic())
+    goods_data = get_shop_goods(shop_id='53')
+    common.account.shop_login(username='上海哈奇贸易有限公司', password='a123456')
+    token = common.account.get_shop_token()
+    for data in goods_data:
+        add_goods(goods_id=data, shop_token=token)
+        time.sleep(1.5)
