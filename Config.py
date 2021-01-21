@@ -32,4 +32,6 @@ def get_db(env='dev'):
         database = 'store_test'
     elif env == 'old_test':
         database = 'test_lczgu_shop_goods'
+    elif env == 'old_test_member':
+        database = 'test_lczgu_shop_member'
     return database

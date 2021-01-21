@@ -18,6 +18,10 @@ brand_dic = get_brand_id_dic()
 # 获取分类字典表
 category_dic = get_category_dic()
 
+# 系统后台登录
+common.account.admin_login()
+admin_token = common.account.get_admin_token()
+
 
 def get_parent_category_id(category):
     result = common.db.select_one(sql=f"""
@@ -209,9 +213,56 @@ def get_shop_goods(shop_id):
     return goods_list
 
 
+def shop_create(shop_id):
+    old_db_member = common.Database()
+    old_db_member.database = Config.get_db(env='old_test_member')
+    shop_detail = old_db_member.select_one(sql=f"""
+    SELECT
+        esd.company_address, esd.company_name, esd.company_phone, esd.company_email, \
+        esd.link_phone, esd.legal_name, esd.employee_num, es.member_name
+    FROM
+        es_shop_detail esd
+        left join es_shop es ON es.shop_id = esd.shop_id
+    where
+        es.shop_id = {shop_id}
+    """)
+    address = shop_detail[0]
+    company_name = shop_detail[1]
+    company_phone = shop_detail[2]
+    email = shop_detail[3]
+    notice_phone = shop_detail[4]
+    on_access_name = shop_detail[5]
+    staff_num = shop_detail[6]
+    shop_name = shop_detail[7]
+
+    body = {
+        "address": address,
+        "companyName": company_name,
+        "companyPhone": company_phone,
+        "email": email,
+        "inventoryWarn": 100,
+        "noticePhone": notice_phone,
+        "onAccessName": on_access_name,
+        "onAccessPhone": notice_phone,
+        "password": "a123456",
+        "regCapital": 1000000,
+        "shopName": shop_name,
+        "shopType": "1",
+        "staffNum": staff_num,
+        "status": "1",
+        "username": shop_name
+    }
+    create = common.req.request_post(url='/store/manage/shop', token=admin_token, body=body)
+    if create['code'] == 200:
+        print(f'注册成功,账号:{shop_name}, 密码:a123456')
+    else:
+        print(f"注册失败,{create['text']}")
+
+
 if __name__ == '__main__':
-    goods_data = get_shop_goods(shop_id='53')
-    common.account.shop_login(username='上海哈奇贸易有限公司', password='a123456')
+    # shop_create(shop_id='54')
+    goods_data = get_shop_goods(shop_id='54')
+    common.account.shop_login(username='郓城梓诺', password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
         add_goods(goods_id=data, shop_token=token)
