@@ -17,4 +17,4 @@ def user_register(count=1, r_mobile=None):
 
 
 if __name__ == '__main__':
-    user_register(1)
+    user_register()
