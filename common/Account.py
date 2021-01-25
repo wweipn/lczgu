@@ -1,5 +1,3 @@
-import requests
-import json
 import csv
 from common.Database import Database
 from common.Request import ApiRequests

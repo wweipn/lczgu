@@ -273,8 +273,8 @@ def shop_create(shop_id):
 
 
 if __name__ == '__main__':
-    create_shop = shop_create(shop_id='60')
-    goods_data = get_shop_goods(shop_id='60')
+    create_shop = shop_create(shop_id='63')
+    goods_data = get_shop_goods(shop_id='63')
     common.account.shop_login(username=create_shop, password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:

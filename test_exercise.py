@@ -3,7 +3,10 @@
 # @Author: Waipang
 
 import common
+import time
 
 
 if __name__ == '__main__':
-    common.account.user_register(r_mobile='19216850003')
+    for i in range(3):
+        common.account.user_register(r_mobile='19216850003')
+        time.sleep(0.3)
