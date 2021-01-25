@@ -49,4 +49,4 @@ def goods_audit(audit_num):
 
 
 if __name__ == '__main__':
-    goods_audit(20)
+    goods_audit(30)

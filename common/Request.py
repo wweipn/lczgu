@@ -1,6 +1,5 @@
 import requests
 import json
-import time
 import Config
 
 """
@@ -38,7 +37,7 @@ class ApiRequests:
 
     """
         基于requests框架封装,提供给put请求方式的接口所使用的方法
-        """
+    """
 
     def request_put(self, url, token=None, params=None, body=None, data=None, **kwargs):
         headers = {**kwargs}
@@ -75,7 +74,6 @@ class ApiRequests:
         result = {
             'text': json.loads(res.text),
             'status_code': res.status_code,
-
             'url': res.url,
             'req_header': res.request.headers,
             'rep_header': res.headers

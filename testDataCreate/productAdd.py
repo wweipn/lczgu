@@ -76,7 +76,7 @@ def get_goods_sku_req_vo(goods_id):
     # 查询商品的sku信息
     result = old_db.select_all(f"""
     SELECT
-        specs,price,thumbnail,sku_id,cost
+        specs,price,thumbnail,sku_id,cost,category_id
     FROM
         es_goods_sku
     WHERE
@@ -90,6 +90,7 @@ def get_goods_sku_req_vo(goods_id):
         thumbnail = sku[2]
         old_sku_id = sku[3]
         cost = float(sku[4])
+        category_id = category_dic[sku[5]]
 
         # 往商品sku信息中插入数据
         goods_sku_req_vo.append(
@@ -100,6 +101,7 @@ def get_goods_sku_req_vo(goods_id):
                 "name": "",
                 "price": price,
                 "warnQuantity": 50,
+                "categoryId": category_id,
                 "sn": old_sku_id,
                 "thumbnail": thumbnail,
                 "goodsSpecificationReqVO": []
@@ -219,6 +221,11 @@ def get_shop_goods(shop_id):
 
 
 def shop_create(shop_id):
+    """
+    注册商家后台账号
+    :param shop_id: 老系统商家ID
+    :return: 商家名称(用于登录使用)
+    """
     old_db_member = common.Database()
     old_db_member.database = Config.get_db(env='old_test_member')
     shop_detail = old_db_member.select_one(sql=f"""
@@ -260,14 +267,15 @@ def shop_create(shop_id):
     create = common.req.request_post(url='/store/manage/shop', token=admin_token, body=body)
     if create['code'] == 200:
         print(f'注册成功,账号:{shop_name}, 密码:a123456')
+        return shop_name
     else:
         print(f"注册失败,{create['text']}")
 
 
 if __name__ == '__main__':
-    # shop_create(shop_id='55')
-    goods_data = get_shop_goods(shop_id='55')
-    common.account.shop_login(username='灵堡贸易', password='a123456')
+    create_shop = shop_create(shop_id='60')
+    goods_data = get_shop_goods(shop_id='60')
+    common.account.shop_login(username=create_shop, password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
         add_goods(goods_id=data, shop_token=token)

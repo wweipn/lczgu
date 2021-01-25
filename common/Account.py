@@ -32,7 +32,7 @@ class Account(ApiRequests, Database):
         获取数据库中最新的登录账号
         """
         last_number = self.select_one(sql="""
-        SELECT mobile FROM user_account WHERE mobile LIKE '1719999%' ORDER BY mobile desc LIMIT 1
+        SELECT mobile FROM user_account WHERE mobile LIKE '19216850%' ORDER BY mobile desc LIMIT 1
         """)[0]
         new_mobile = str(int(last_number) + 1)
         return new_mobile
