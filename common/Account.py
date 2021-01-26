@@ -1,9 +1,17 @@
 import csv
 from common.Database import Database
 from common.Request import ApiRequests
+import os
 
 
 class Account(ApiRequests, Database):
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    temp = os.path.dirname(cur_path)
+    test_file_path = os.path.join(temp, 'test_file')
+    user_token_file = os.path.join(test_file_path, 'user_token.csv')
+    shop_token_file = os.path.join(test_file_path, 'shop_token.csv')
+    admin_token_file = os.path.join(test_file_path, 'admin_token.csv')
+
     """
     账户类,包含商家/用户/管理后台的注册/登录以及获取token的方法
     """
@@ -78,7 +86,7 @@ class Account(ApiRequests, Database):
                 'password': password}
         res = self.request_post('/store/manage/account/login', body=body)
         admin_token = res['rep_header']['AccessToken']
-        with open('D:/PythonProject/Lczgu/test_file/admin_token.csv', 'w', newline='',
+        with open(self.admin_token_file, 'w', newline='',
                   encoding='utf-8') as AdminTokenFiles:
             admin_token_write = csv.writer(AdminTokenFiles)
             admin_token_write.writerow([admin_token])
@@ -93,7 +101,7 @@ class Account(ApiRequests, Database):
         login_user_list = []
         # 读取csv文件中的用户账号并写入login_user_list
         if source == 1:
-            with open('D:/PythonProject/Lczgu/test_file/user_list.csv', 'r', encoding='utf-8') as UserListFile:
+            with open(self.user_token_file, 'r', encoding='utf-8') as UserListFile:
                 csv_file_read = csv.reader(UserListFile)
                 next(csv_file_read)
                 for row in csv_file_read:
@@ -103,7 +111,7 @@ class Account(ApiRequests, Database):
         elif source == 0 and user_list is not None:
             login_user_list = user_list
         # 从login_user_list中取出登录账号,逐一登录完毕后把token储存到csv文件中
-        with open('D:/PythonProject/Lczgu/test_file/User_token.csv', 'w', newline='',
+        with open(self.user_token_file, 'w', newline='',
                   encoding='utf-8') as UserTokenFile:
             csv_file_writer = csv.writer(UserTokenFile)
             csv_file_writer.writerow(['account', 'token'])
@@ -127,26 +135,25 @@ class Account(ApiRequests, Database):
                 'password': password}
         res = self.request_post('/store/seller/account/login', body=body)
         shop_token = res['rep_header']['AccessToken']
-        with open('D:/PythonProject/Lczgu/test_file/shop_token.csv', 'w', newline='',
+        with open(self.shop_token_file, 'w', newline='',
                   encoding='utf-8') as shopTokenFiles:
-            admin_token_write = csv.writer(shopTokenFiles)
-            admin_token_write.writerow([shop_token])
+            shop_token_write = csv.writer(shopTokenFiles)
+            shop_token_write.writerow([shop_token])
 
-    @staticmethod
-    def get_shop_token():
+    def get_shop_token(self):
         """
         获取商家token
         :return: 商家token
         """
         # 读取存储管理后台token的csv文件,并返回token信息
-        with open('D:/PythonProject/Lczgu/test_file/shop_token.csv', 'r', encoding='utf-8') as ShopTokenRead:
+        with open(self.shop_token_file, 'r', encoding='utf-8') as ShopTokenRead:
             csv_file_read = csv.reader(ShopTokenRead)
             for row in csv_file_read:
                 shop_token = row[0]
         return shop_token
 
-    @staticmethod
-    def get_user_token(mobile=None):
+    # @staticmethod
+    def get_user_token(self, mobile=None):
         """
         获取用户token
         :param mobile: 查询所有token: 不传, 查询指定账号token: 传手机号
@@ -154,7 +161,7 @@ class Account(ApiRequests, Database):
         """
         user_token_list = []
         # 读取存储token的csv文件,并写入字段user_token_dic中
-        with open('D:/PythonProject/Lczgu/test_file/User_token.csv', 'r', encoding='utf-8') as UserTokenRead:
+        with open(self.user_token_file, 'r', encoding='utf-8') as UserTokenRead:
             csv_file_read = csv.reader(UserTokenRead)
             next(csv_file_read)
             for row in csv_file_read:

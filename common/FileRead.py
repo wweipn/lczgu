@@ -3,6 +3,7 @@
 # @Author: Waipang
 
 import csv
+import os
 
 """
 获取csv文件下的表头和数据的方法
@@ -10,10 +11,14 @@ import csv
 """
 
 
-def file_read(file_path):
+def testcase_file_read(file_name):
     data_list = []
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    temp = os.path.dirname(cur_path)
+    test_file_path = os.path.join(temp, 'test_file')
+    test_file = os.path.join(test_file_path, file_name)
     # 读取存储数据的csv文件
-    with open(file_path, 'r', encoding='gbk') as FileRead:
+    with open(test_file, 'r', encoding='gbk') as FileRead:
         csv_file_read = csv.reader(FileRead)
         for row in csv_file_read:
             data_list.append(row)

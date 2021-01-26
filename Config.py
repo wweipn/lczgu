@@ -1,10 +1,12 @@
-
-"""
-这个配置会更改涉及到所有类调用的域名,暂时封装成函数的方式,后续如果有其他配置会再放进来
-"""
+import os
 
 
 def get_host(env='dev'):
+    """
+    获取域名配置
+    :param env:
+    :return:
+    """
     url = ''
     if env == 'dev':
         # url = 'http://192.168.1.15:8001'  # 吕文波本地环境
@@ -19,12 +21,12 @@ def get_host(env='dev'):
     return url
 
 
-"""
-用于数据库类获取当前环境的配置项
-"""
-
-
 def get_db(env='dev'):
+    """
+    获取数据库配置项
+    :param env:
+    :return:
+    """
     database = ''
     if env == 'dev':
         database = 'store'
@@ -35,3 +37,8 @@ def get_db(env='dev'):
     elif env == 'old_test_member':
         database = 'test_lczgu_shop_member'
     return database
+
+
+def test_file_path():
+    path = os.path.abspath('.')
+    return path
