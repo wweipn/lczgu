@@ -5,13 +5,13 @@
 import csv
 import os
 
-"""
-获取csv文件下的表头和数据的方法
-参数:file_path, 
-"""
-
 
 def testcase_file_read(file_name):
+    """
+    获取csv文件下的表头和数据的方法
+    :param file_name: test_file文件夹下的文件名称(带后缀)
+    :return:
+    """
     data_list = []
     cur_path = os.path.dirname(os.path.realpath(__file__))
     temp = os.path.dirname(cur_path)

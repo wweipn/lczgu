@@ -3,7 +3,6 @@
 # @Author: Waipang
 
 import common
-import time
 
 
 if __name__ == '__main__':

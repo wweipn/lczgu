@@ -8,11 +8,11 @@ import Config
 
 class Database:
     database = Config.get_db()
-    """
-    初始化数据库连接
-    """
-    def __init__(self):
 
+    def __init__(self):
+        """
+        初始化数据库连接
+        """
         self.conn = pymysql.connect(
             host='192.168.1.10',
             port=3306,
@@ -22,12 +22,9 @@ class Database:
             charset='utf8')
         self.cursor = self.conn.cursor()
 
-    """
-    单条数据查询方法
-    """
     def select_one(self, sql):
         """
-
+        单条数据查询方法
         :param sql: 传入sql
         :return: 返回的值需要取下标
         """
@@ -37,12 +34,9 @@ class Database:
         self.close()
         return select_result
 
-    """
-    多条数据查询方法
-    """
     def select_all(self, sql):
         """
-
+        多条数据查询方法
         :param sql: 传入sql
         :return: 会返回多条查询结果,需要遍历处理
         """
@@ -52,9 +46,9 @@ class Database:
         self.close()
         return select_result
 
-    """
-    关闭数据库连接方法,完成所有数据库增删改查操作后调用
-    """
     def close(self):
+        """
+        关闭数据库连接方法,完成所有数据库增删改查操作后调用
+        """
         self.cursor.close()
         self.conn.close()

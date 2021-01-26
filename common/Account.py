@@ -5,16 +5,18 @@ import os
 
 
 class Account(ApiRequests, Database):
-    cur_path = os.path.dirname(os.path.realpath(__file__))
-    temp = os.path.dirname(cur_path)
-    test_file_path = os.path.join(temp, 'test_file')
-    user_token_file = os.path.join(test_file_path, 'user_token.csv')
-    shop_token_file = os.path.join(test_file_path, 'shop_token.csv')
-    admin_token_file = os.path.join(test_file_path, 'admin_token.csv')
-
     """
     账户类,包含商家/用户/管理后台的注册/登录以及获取token的方法
     """
+    # 定义文件路径
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    temp = os.path.dirname(cur_path)
+    test_file_path = os.path.join(temp, 'test_file')
+
+    # 定义存储token的文件
+    user_token_file = os.path.join(test_file_path, 'user_token.csv')
+    shop_token_file = os.path.join(test_file_path, 'shop_token.csv')
+    admin_token_file = os.path.join(test_file_path, 'admin_token.csv')
 
     def get_userinfo(self, mobile):
         """
@@ -38,7 +40,13 @@ class Account(ApiRequests, Database):
         获取数据库中最新的登录账号
         """
         last_number = self.select_one(sql="""
-        SELECT mobile FROM user_account WHERE mobile LIKE '19216850%' ORDER BY mobile desc LIMIT 1
+        SELECT 
+            mobile 
+        FROM 
+            user_account 
+        WHERE 
+            mobile LIKE '19216850%' 
+        ORDER BY mobile desc LIMIT 1
         """)[0]
         new_mobile = str(int(last_number) + 1)
         return new_mobile

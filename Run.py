@@ -23,3 +23,5 @@ if __name__ == '__main__':
         # logger.error("报告生成失败，请重新执行", e)
         # log.error('执行用例失败，请检查环境配置')
         raise
+
+
