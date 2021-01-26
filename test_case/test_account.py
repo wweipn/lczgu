@@ -60,7 +60,3 @@ class TestAccount:
             allure.attach(str(api['text']), '返回结果')
             assert eval(test)
 
-
-# if __name__ == '__main__':
-#     A = TestAccount()
-#     A.test_register()

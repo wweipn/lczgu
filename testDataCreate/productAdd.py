@@ -151,7 +151,7 @@ def get_goods_spu_req_vo(goods_id):
     if result[4] != '':
         if result[4].find('false') != -1:
             if result[4].find('true') != -1:
-                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None"). \
+                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None").
                                            replace("true", "None")))
             else:
                 image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None")))
