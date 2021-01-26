@@ -1,5 +1,3 @@
-import os
-
 
 def get_host(env='dev'):
     """
@@ -7,18 +5,17 @@ def get_host(env='dev'):
     :param env:
     :return:
     """
-    url = ''
     if env == 'dev':
-        # url = 'http://192.168.1.15:8001'  # 吕文波本地环境
-        # url = 'http://192.168.1.43:8001'  # 江平本地环境
-        # url = 'http://192.168.1.39:8001'  # 何星本地环境
-        url = 'http://192.168.1.8:8001'  # 开发环境后台
+        # return 'http://192.168.1.15:8001'  # 吕文波本地环境
+        # return 'http://192.168.1.43:8001'  # 江平本地环境
+        # return 'http://192.168.1.39:8001'  # 何星本地环境
+        return 'http://192.168.1.8:8001'  # 开发环境后台
 
     elif env == 'test':
-        url = 'http://192.168.1.8:8101'
+        return 'http://192.168.1.8:8101'  # 测试环境后台
+
     elif env == 'pro':
-        url = ''  # 线上环境,展示用不上
-    return url
+        return ''  # 线上环境,展示用不上
 
 
 def get_db(env='dev'):
@@ -27,18 +24,15 @@ def get_db(env='dev'):
     :param env:
     :return:
     """
-    database = ''
     if env == 'dev':
-        database = 'store'
+        return 'store'
+
     elif env == 'test':
-        database = 'store_test'
+        return 'store_test'
+
     elif env == 'old_test':
-        database = 'test_lczgu_shop_goods'
+        return 'test_lczgu_shop_goods'
+
     elif env == 'old_test_member':
-        database = 'test_lczgu_shop_member'
-    return database
+        return 'test_lczgu_shop_member'
 
-
-def test_file_path():
-    path = os.path.abspath('.')
-    return path

@@ -9,17 +9,17 @@ class Address(ApiRequests):
         # 调用查询地址接口获取省份列表, 随机取其中一条数据
         province_list = self.request_get('/store/common/area/list/0')
         province = random.choice(province_list['text']['data'])
-        province_id = str(province['id'])
+        province_id = province['id']
 
         # 调用查询地址接口获取城市列表, 随机取其中一条数据
         city_list = self.request_get(f"/store/common/area/list/{province_id}")
         city = random.choice(city_list['text']['data'])
-        city_id = str(city['id'])
+        city_id = city['id']
 
         # 调用查询地址接口获取区列表, 随机取其中一条数据
         county_list = self.request_get(f"/store/common/area/list/{city_id}")
         county = random.choice(county_list['text']['data'])
-        county_id = str(county['id'])
+        county_id = county['id']
         return province_id, city_id, county_id
 
     # 添加地址方法

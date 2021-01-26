@@ -28,7 +28,7 @@ class Account(ApiRequests, Database):
             "source": "ANDROID"
         }
         login = self.request_post(url='/store/api/account/login', body=body)
-        token = login['text']['data']['accessToken']
+        token = login['rep_header']['accessToken']
         get_info = self.request_get('/store/api/account/userinfo', token=token)
         recommend_id = get_info['text']['data']['recommendId']
         return recommend_id
@@ -152,7 +152,6 @@ class Account(ApiRequests, Database):
                 shop_token = row[0]
         return shop_token
 
-    # @staticmethod
     def get_user_token(self, mobile=None):
         """
         获取用户token
@@ -176,14 +175,13 @@ class Account(ApiRequests, Database):
                 if i[0] == mobile:
                     return i[1]
 
-    @staticmethod
-    def get_admin_token():
+    def get_admin_token(self):
         """
         获取管理后台token
         :return:
         """
         # 读取存储管理后台token的csv文件,并返回token信息
-        with open('D:/PythonProject/Lczgu/test_file/admin_token.csv', 'r', encoding='utf-8') as AdminTokenRead:
+        with open(self.admin_token_file, 'r', encoding='utf-8') as AdminTokenRead:
             csv_file_read = csv.reader(AdminTokenRead)
             for row in csv_file_read:
                 admin_token = row[0]

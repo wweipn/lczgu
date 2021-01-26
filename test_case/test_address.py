@@ -10,7 +10,7 @@ import pytest
 
 @allure.feature('用户地址')
 class TestAddress:
-    add_address_k, add_address_v = common.file_read('D:/PythonProject/Lczgu/test_file/add_address_data.csv')
+    add_address_k, add_address_v = common.testcase_file_read('add_address_data.csv')
 
     @pytest.mark.parametrize(add_address_k, add_address_v)
     @allure.title('验证添加收货地址')

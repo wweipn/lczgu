@@ -1,5 +1,4 @@
 import requests
-import json
 import Config
 
 """
@@ -10,11 +9,17 @@ import Config
 class ApiRequests:
     host = Config.get_host()
 
-    """
-    基于requests框架封装,提供给post请求方式的接口所使用的方法
-    """
-
     def request_post(self, url, token=None, params=None, body=None, data=None, **kwargs):
+        """
+        POST接口请求方法
+        :param url: 接口路径
+        :param token: token
+        :param params: url参数
+        :param body: 请求体参数
+        :param data: 表单提交
+        :param kwargs: 自定义请求头
+        :return:
+        """
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
@@ -22,11 +27,11 @@ class ApiRequests:
             pass
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
-            'text': json.loads(res.text),
+            'text': res.json(),
             'status_code': res.status_code,
-            'code': json.loads(res.text)['code'],
-            'desc': json.loads(res.text)['desc'],
-            'data': json.loads(res.text)['data'],
+            'code': res.json()['code'],
+            'desc': res.json()['desc'],
+            'data': res.json()['data'],
             'url': res.url,
             'req_header': res.request.headers,
             'rep_header': res.headers,
@@ -35,11 +40,17 @@ class ApiRequests:
         }
         return result
 
-    """
-        基于requests框架封装,提供给put请求方式的接口所使用的方法
-    """
-
     def request_put(self, url, token=None, params=None, body=None, data=None, **kwargs):
+        """
+        PUT接口请求方法
+        :param url: 接口路径
+        :param token: token
+        :param params: url参数
+        :param body: 请求体参数
+        :param data: 表单提交
+        :param kwargs: 自定义请求头
+        :return:
+        """
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
@@ -47,24 +58,29 @@ class ApiRequests:
             pass
         res = requests.put(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
-            'text': json.loads(res.text),
+            'text': res.json(),
             'status_code': res.status_code,
-            'code': json.loads(res.text)['code'],
-            'desc': json.loads(res.text)['desc'],
-            'data': json.loads(res.text)['data'],
+            'code': res.json()['code'],
+            'desc': res.json()['desc'],
+            'data': res.json()['data'],
             'url': res.url,
             'req_header': res.request.headers,
             'rep_header': res.headers,
             'body': res.request.body
-
         }
         return result
 
-    """
-       基于requests框架封装,提供给get请求方式的接口所使用的方法
-    """
-
     def request_get(self, url, token=None, params=None, body=None, data=None, **kwargs):
+        """
+        GET接口请求方法
+        :param url: 接口路径
+        :param token: token
+        :param params: url参数
+        :param body: 请求体参数
+        :param data: 表单提交
+        :param kwargs: 自定义请求头
+        :return:
+        """
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
@@ -72,10 +88,14 @@ class ApiRequests:
             pass
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
-            'text': json.loads(res.text),
+            'text': res.json(),
             'status_code': res.status_code,
+            'code': res.json()['code'],
+            'desc': res.json()['desc'],
+            'data': res.json()['data'],
             'url': res.url,
             'req_header': res.request.headers,
-            'rep_header': res.headers
+            'rep_header': res.headers,
+            'body': res.request.body
         }
         return result
