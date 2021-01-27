@@ -94,8 +94,7 @@ class Account(ApiRequests, Database):
                 'password': password}
         res = self.request_post('/store/manage/account/login', body=body)
         admin_token = res['rep_header']['AccessToken']
-        with open(self.admin_token_file, 'w', newline='',
-                  encoding='utf-8') as AdminTokenFiles:
+        with open(self.admin_token_file, 'w', newline='', encoding='utf-8') as AdminTokenFiles:
             admin_token_write = csv.writer(AdminTokenFiles)
             admin_token_write.writerow([admin_token])
 
@@ -119,8 +118,7 @@ class Account(ApiRequests, Database):
         elif source == 0 and user_list is not None:
             login_user_list = user_list
         # 从login_user_list中取出登录账号,逐一登录完毕后把token储存到csv文件中
-        with open(self.user_token_file, 'w', newline='',
-                  encoding='utf-8') as UserTokenFile:
+        with open(self.user_token_file, 'w', newline='', encoding='utf-8') as UserTokenFile:
             csv_file_writer = csv.writer(UserTokenFile)
             csv_file_writer.writerow(['account', 'token'])
             for account in login_user_list:
@@ -175,7 +173,7 @@ class Account(ApiRequests, Database):
                 account = row[0]
                 token = row[1]
                 user_token_list.append((account, token))
-        # 如果没有传入mobile参数,返回user_token_dic,否则返回账户对应的token
+        # 如果没有传入mobile参数,返回user_token_list,否则返回账户对应的token
         if mobile is None:
             return user_token_list
         else:

@@ -12,12 +12,14 @@ def testcase_file_read(file_name):
     :param file_name: test_file文件夹下的文件名称(带后缀)
     :return:
     """
-    data_list = []
+    # 定义文件路径
     cur_path = os.path.dirname(os.path.realpath(__file__))
     temp = os.path.dirname(cur_path)
     test_file_path = os.path.join(temp, 'test_file')
     test_file = os.path.join(test_file_path, file_name)
-    # 读取存储数据的csv文件
+    # 定义空列表
+    data_list = []
+    # 读取存储数据的csv文件, 写入列表中
     with open(test_file, 'r', encoding='gbk') as FileRead:
         csv_file_read = csv.reader(FileRead)
         for row in csv_file_read:

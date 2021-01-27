@@ -89,11 +89,11 @@ class ApiRequests:
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),
-            'status_code': res.status_code,
             'code': res.json()['code'],
             'desc': res.json()['desc'],
             'data': res.json()['data'],
             'url': res.url,
+            'status_code': res.status_code,
             'req_header': res.request.headers,
             'rep_header': res.headers,
             'body': res.request.body
