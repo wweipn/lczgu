@@ -7,4 +7,4 @@ import os
 
 
 if __name__ == '__main__':
-    common.get_file_path('test_case')
+    pass
