@@ -3,6 +3,7 @@
 # @Author: Waipang
 
 import common
+import time
 
 
 def user_register(count=1, r_mobile=None):
@@ -14,7 +15,9 @@ def user_register(count=1, r_mobile=None):
     """
     for i in range(count):
         common.account.user_register(r_mobile=r_mobile)
+        time.sleep(0.5)
 
 
 if __name__ == '__main__':
-    user_register()
+    user_register(r_mobile=19216850036, count=2)
+

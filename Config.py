@@ -9,6 +9,7 @@ def get_host(env='dev'):
         # return 'http://192.168.1.15:8001'  # 吕文波本地环境
         # return 'http://192.168.1.43:8001'  # 江平本地环境
         # return 'http://192.168.1.39:8001'  # 何星本地环境
+        # return 'http://192.168.1.117:8001'  # 汤升本地环境
         return 'http://192.168.1.8:8001'  # 开发环境后台
 
     elif env == 'test':

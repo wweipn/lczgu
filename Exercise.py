@@ -3,10 +3,7 @@
 # @Author: Waipang
 
 import common
-import os
-import requests
 
 
 if __name__ == '__main__':
     pass
-

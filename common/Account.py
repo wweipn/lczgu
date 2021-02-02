@@ -81,7 +81,8 @@ class Account(ApiRequests, Database):
             'source': 'IOS'  # ANDROID, H5, IOS, MINI
         }
         res = self.request_post('/store/api/account/login', body=body, token=access_token)
-        return res, mobile
+        print(f'账号【{mobile}】注册成功，邀请人手机号：{r_mobile}')
+        return res
 
     def admin_login(self, username='admin', password='123456'):
         """

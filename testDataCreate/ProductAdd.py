@@ -4,8 +4,8 @@
 
 import Config
 import common
-from testDataCreate.categoryAdd import get_category_dic
-from testDataCreate.brandAdd import get_brand_id_dic
+from testDataCreate.CategoryAdd import get_category_dic
+from testDataCreate.BrandAdd import get_brand_id_dic
 import time
 
 # 连接老系统数据库
