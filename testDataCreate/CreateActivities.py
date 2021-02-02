@@ -56,8 +56,8 @@ def half_price_activity(goods_num):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = (now + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=1.5)).strftime('%Y-%m-%d %H:%M:%S')
+    end_time = (now + timedelta(minutes=2.5)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
     body = {
@@ -105,6 +105,7 @@ def full_discount(goods_num):
         "name": f"满减活动({start_time})",
         "startTime": start_time,
         "endTime": end_time,
+        "modeType": 0,
         "goodsList": goods_list,
         "addReduce": full_reduction_detail
     }
@@ -118,5 +119,5 @@ def full_discount(goods_num):
 
 
 if __name__ == '__main__':
-    half_price_activity(goods_num=10)
-    # full_discount(goods_num=10)
+    # half_price_activity(goods_num=10)
+    full_discount(goods_num=10)
