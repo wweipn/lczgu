@@ -60,18 +60,20 @@ def coupon_create(vip=None):
     添加优惠券
     :return:
     """
-    time_type = int(input('时间类型(1: 相对时间, 0: 固定时间): \n'))
-    coupon_type = int(input('获取方式(1: 商品详情页领取, 2: 新用户注册赠送, 3: VIP赠送, 4: 后台发放): \n'))
-    use_scope = int(input('使用范围(1: 全品, 2: 分类, 3: 商品): \n'))
+    time_type = int(input('时间类型(0: 固定时间, 1: 相对时间): \n'))
+    coupon_type = int(input('获取方式(0: 商品详情页领取, 1: 新用户注册赠送, 2: VIP赠送, 3: 后台发放): \n'))
+    use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
 
-    coupon_price = random.randint(10, 50)
-    coupon_threshold_price = random.randint(100, 200)
+    coupon_price = random.randint(10, 60)
+    coupon_threshold_price = random.randint(100, 300)
     body = {
-        "title": f"{coupon_price}元优惠券",
+        "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
         "couponPrice": coupon_price,
         "couponThresholdPrice": coupon_threshold_price,
-        "scopeDescription": "这个是范围描述",
-        "activityDescription": "优惠券活动描述"
+        "scopeDescription": "优惠券使用范围描述",
+        "activityDescription": "优惠券描述",
+        "useScope": use_scope,
+        "type": coupon_type
     }
 
     # 优惠券时间类型
@@ -81,10 +83,10 @@ def coupon_create(vip=None):
         body['timeValue'] = 7
 
     elif time_type == 0:
-        # 固定时间, 开始时间为当前时间+30秒, 结束时间为当前时间+7天
+        # 固定时间, 开始时间为当前时间+1分钟, 结束时间为当前时间+7天
         now = datetime.now()
-        start_time = (now + timedelta(seconds=30)).strftime('%Y-%m-%d %H:%M:%S')
-        end_time = (now + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+        start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
+        end_time = (now + timedelta(minutes=3)).strftime('%Y-%m-%d %H:%M:%S')
         body['timeType'] = 0
         body['startTime'] = start_time
         body['endTime'] = end_time
@@ -94,50 +96,43 @@ def coupon_create(vip=None):
         return
 
     # 优惠券获取方式
-    if coupon_type == 1:
+    if coupon_type == 0:
         # 商品详情页获取, 默认限领数量为1, 发放数量为100
-        body['type'] = "FREE_GET"
-        body['userType'] = 0 if not vip else 1
+        body['userType'] = 0 if vip is None else 1
         body['createNum'] = 100
         body['limitNum'] = 1
 
-    elif coupon_type == 2:
-        # 新用户注册赠送
-        body['type'] = "NEW_USER_CIRCLE"
-
-    elif coupon_type == 3:
-        # VIP券
-        body['type'] = "VIP_USER_CIRCLE"
-
-    elif coupon_type == 4:
-        # 后台指定用户发放
-        body['type'] = "PROVIDE_USER_COUPON"
-
-    else:
-        print('优惠券获取方式有误')
-        return
-
     # 优惠券使用范围
-    if use_scope == 1:
+    if use_scope == 0:
         # 全品
-        body['useScope'] = "ALL"
         body['scopeId'] = 0
-    elif use_scope == 2:
+    elif use_scope == 1:
         # 部分分类
-        body['useScope'] = "CATEGORY"
         body['scopeId'] = get_category()
 
-    elif use_scope == 3:
+    elif use_scope == 2:
         # 部分商品
-        body['useScope'] = "SOME_GOODS"
         body['scopeId'] = get_goods()
 
     common.account.admin_login()
     admin_token = common.account.get_admin_token()
+    print(str(body).replace("'", '"'))
     request = common.req.request_post(url='/store/manage/promotion/coupon/addSaveCoupon',
                                       token=admin_token,
                                       body=body)
-    print(request['text'])
+    data = request['data']
+
+    print(f"""
+【优惠券创建成功】
+标题: {data['title']}
+金额: {data['couponPrice']}元
+门槛: {data['couponThresholdPrice']}元
+开始时间: {data['startTime']}
+结束时间: {data['endTime']}
+获取方式: {data['type']}
+适用范围: {data['useScope']}
+使用详情（分类/商品ID）: {body['scopeId']}
+    """)
 
 
 if __name__ == '__main__':

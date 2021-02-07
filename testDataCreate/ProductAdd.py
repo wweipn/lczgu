@@ -95,11 +95,12 @@ def get_goods_sku_req_vo(goods_id):
         # 往商品sku信息中插入数据
         goods_sku_req_vo.append(
             {
-                # "categoryId": category_id,
                 "cost": cost,
+                "price": price,
+                "linePrice": price + 10,
+                "retail_price": price,
                 "enableQuantity": 500,
                 "name": "",
-                "price": price,
                 "warnQuantity": 50,
                 "categoryId": category_id,
                 "sn": old_sku_id,
@@ -273,8 +274,11 @@ def shop_create(shop_id):
 
 
 if __name__ == '__main__':
+    # 供应商账号注册(shop_id: 老系统供应商ID)
     create_shop = shop_create(shop_id='63')
+    # 获取老系统供应商商品
     goods_data = get_shop_goods(shop_id='63')
+    # 供应商登录
     common.account.shop_login(username=create_shop, password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
