@@ -31,7 +31,7 @@ def add_address(mobile):
     :param mobile: 手机号
     :return:
     """
-    common.account.user_login([mobile])
+    common.account.user_login([str(mobile)])
     user_token = common.account.get_user_token(mobile)
     province_id, city_id, county_id = get_ran_address_info()
     body = {
@@ -44,9 +44,12 @@ def add_address(mobile):
         "provinceId": province_id
     }
     res = common.req.request_post('/store/api/user/addr/address', body=body, token=user_token)
-    return res
+    if res['code'] == 200:
+        print(res['text'])
+    else:
+        print(f"地址添加失败\n{res['text']}")
 
 
 if __name__ == '__main__':
-    address_add = add_address('19216853000')
-    print(address_add['text'])
+    add_address(19216853000)
+

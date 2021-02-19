@@ -16,8 +16,8 @@ def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=10):
     """
     生成添加活动时所需的商品数据
     :param limit_num: 限购数量(限时抢购用)
-    :param activity_num: 活动库存(限时抢购用)
-    :param activity_type: 活动类型: 1: 普通活动(第二件半价,满减) 2: 限时抢购活动
+    :param activity_num: 活动库存
+    :param activity_type: 活动类型: 1: 普通活动(第二件半价,满减) 2: 限时抢购活动 3: 拼团活动
     :param num: 需要添加的商品数量
     :return:
     """
@@ -32,7 +32,7 @@ def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=10):
     WHERE
         spu.audit_status  = 1
         AND	spu.status = 3
-        AND spu.type = 0   
+        AND spu.type = 0
     ORDER BY RAND()
     LIMIT {num}
     """)
@@ -48,11 +48,20 @@ def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=10):
             if activity_type == 1:
                 goods_list.append({"goodsId": spu_id, "skuId": sku_id})
             elif activity_type == 2:
-                goods_list.append({"goodsId": spu_id,
-                                   "skuId": sku_id,
-                                   "activityNum": activity_num,
-                                   "limitNum": limit_num,
-                                   "price": float(price - (price * 15 / 100))
+                goods_list.append({
+                    "goodsId": spu_id,
+                    "skuId": sku_id,
+                    "activityNum": activity_num,
+                    "limitNum": limit_num,
+                    "price": round(price * 0.8, 2)
+                                   })
+            elif activity_type == 3:
+                goods_list.append({
+                    "activityNum": activity_num,
+                    "goodsId": spu_id,
+                    "price": round(price * 0.7, 2),
+                    "skuId": sku_id,
+                    "sort": 99
                                    })
         return goods_list
     else:
@@ -72,7 +81,7 @@ def half_price_activity(goods_num):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=1.5)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=3)).strftime('%Y-%m-%d %H:%M:%S')
     end_time = (now + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -87,8 +96,7 @@ def half_price_activity(goods_num):
     request = common.req.request_post(url='/store/manage/promotion/half-price/saveHalfPrice',
                                       token=admin_token(),
                                       body=body)
-    print(body, '\n---------------------------------------\n')
-    print(request['text'], '\n', request['rep_time'])
+    print(str(body).replace("'", '"'), '\n---------------------------------------\n', request['text'])
 
 
 def full_discount(goods_num):
@@ -114,7 +122,7 @@ def full_discount(goods_num):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')
     end_time = (now + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -123,6 +131,7 @@ def full_discount(goods_num):
         "startTime": start_time,
         "endTime": end_time,
         "modeType": 0,
+        "limitNum": 10,
         "goodsList": goods_list,
         "addReduce": full_reduction_detail
     }
@@ -131,8 +140,8 @@ def full_discount(goods_num):
     request = common.req.request_post(url='/store/manage/promotion/full-discount/saveFullDiscount',
                                       token=admin_token(),
                                       body=body)
-    print(body, '\n---------------------------------------\n')
-    print(request['text'])
+
+    print(str(body).replace("'", '"'), '\n---------------------------------------\n', request['text'])
 
 
 def flash_sale(time_line, days=0, goods_num=10):
@@ -159,18 +168,44 @@ def flash_sale(time_line, days=0, goods_num=10):
     request = common.req.request_post(url='/store/manage/promotion/time-limit/saveTimeLimit',
                                       body=body,
                                       token=admin_token())
+    print(str(body).replace("'", '"'), '\n---------------------------------------\n', request['text'])
 
-    print(f"""
-活动【{seckill_name}】添加成功:
-商品信息：
-{goods_list}
-""")
+
+def assemble(goods_num=10):
+    """
+    创建拼团活动
+    :param goods_num: 添加的商品数量
+    :return:
+    """
+
+    now = datetime.now()
+    goods_list = get_activity_goods(activity_type=3, num=goods_num)
+    start_time = (now + timedelta(minutes=1.5)).strftime('%Y-%m-%d %H:%M:%S')
+    end_time = (now + timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
+    name = f"拼团活动({start_time})"
+
+    body = {
+        "addNum": 2,  # 参团人数
+        "limitNum": 1,  # 限购数量
+        "chiefType": 0,  # 团长免单: 0: 关闭, 1: 开启
+        "teamType": 0,  # 虚拟成团: 0: 关闭, 1: 开启
+        "startTime": start_time,  # 开始时间
+        "endTime": end_time,  # 结束时间
+        "name": name,  # 活动名称
+        "title": name,  # 活动标题
+        "goodsList": goods_list
+    }
+
+    request = common.req.request_post(url='/store/manage/promotion/pintuan/savePintuan',
+                                      body=body,
+                                      token=admin_token())
+    print(str(body).replace("'", '"'), '\n---------------------------------------\n', request['text'])
 
 
 if __name__ == '__main__':
-    # half_price_activity(goods_num=500)
-    # full_discount(goods_num=500)
-    # flash_sale(days=1, time_line='21:30:00-21:59:59')
-    flash_sale(time_line='14:41:00-22:59:00')
-    # flash_sale(days=1, time_line='23:00:00-23:59:00')
+    # half_price_activity(goods_num=10)  # 第二件半价活动创建
+    # full_discount(goods_num=10)  # 满减活动创建
+    flash_sale(days=0, time_line='18:00:00-20:59:59')  # 限时抢购活动创建
+    # assemble(goods_num=30)  # 拼团活动创建
+
 

@@ -6,9 +6,10 @@ import common
 import time
 
 
-def goods_audit(audit_num):
+def goods_audit(audit_num, supplier_id=None):
     """
     审核商品
+    :param supplier_id: 商家ID
     :param audit_num: 审核商品数量
     :return:
     """
@@ -21,9 +22,12 @@ def goods_audit(audit_num):
     goods_list_body = {
         "auditStatus": 0,
         "currentPage": 1,
+        # "supplierId": 11,  # 商家ID
         "status": 4,
         "pageSize": audit_num
     }
+    if supplier_id is not None:
+        goods_list_body['supplierId'] = supplier_id
 
     # 调用审核商品接口
     get_goods_list = common.req.request_post(url='/store/manage/goodsManager/getPage', body=goods_list_body,

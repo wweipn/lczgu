@@ -95,10 +95,11 @@ def get_goods_sku_req_vo(goods_id):
         # 往商品sku信息中插入数据
         goods_sku_req_vo.append(
             {
-                "cost": cost,
-                "price": price,
-                "linePrice": price + 10,
-                "retail_price": price,
+                "cost": cost,  # 供货价
+                "price": price,  # 销售价
+                "linePrice": round(price * 120 / 100, 2),  # 市场价, 销售价基础+20%
+                "retailPrice": round(price * 105 / 100, 2),  # 建议零售价, 销售价基础+5%
+                "profitPrice": round(cost * 110 / 100, 2),  # 成本价, 供货价基础+10%
                 "enableQuantity": 500,
                 "name": "",
                 "warnQuantity": 50,
@@ -209,6 +210,8 @@ def add_goods(goods_id, shop_token):
     else:
         print(add['text'])
 
+    print(str(body).replace("'", '"'))
+
 
 def get_shop_goods(shop_id):
     goods_list = []
@@ -257,7 +260,7 @@ def shop_create(shop_id):
         "noticePhone": notice_phone,
         "onAccessName": on_access_name,
         "onAccessPhone": notice_phone,
-        "password": "a123456",
+        "password": "123456",
         "regCapital": 1000000,
         "shopName": shop_name,
         "shopType": "1",
@@ -274,12 +277,12 @@ def shop_create(shop_id):
 
 
 if __name__ == '__main__':
-    # 供应商账号注册(shop_id: 老系统供应商ID)
-    create_shop = shop_create(shop_id='63')
+    # # 供应商账号注册(shop_id: 老系统供应商ID)
+    # create_shop = shop_create(shop_id='63')
     # 获取老系统供应商商品
     goods_data = get_shop_goods(shop_id='63')
     # 供应商登录
-    common.account.shop_login(username=create_shop, password='a123456')
+    common.account.shop_login(username="灵堡贸易", password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
         add_goods(goods_id=data, shop_token=token)
