@@ -123,17 +123,18 @@ def coupon_create(vip=None):
     data = request['data']
 
     print(f"""
-【优惠券创建成功】
-标题: {data['title']}
-金额: {data['couponPrice']}元
-门槛: {data['couponThresholdPrice']}元
-开始时间: {data['startTime']}
-结束时间: {data['endTime']}
-获取方式: {data['type']}
-适用范围: {data['useScope']}
-使用详情（分类/商品ID）: {body['scopeId']}
+    【优惠券创建成功】
+    标题: {data['title']}
+    金额: {data['couponPrice']}元
+    门槛: {data['couponThresholdPrice']}元
+    开始时间: {data['startTime']}
+    结束时间: {data['endTime']}
+    获取方式: {data['type']}
+    适用范围: {data['useScope']}
+    使用详情（分类/商品ID）: {body['scopeId']}
     """)
 
 
 if __name__ == '__main__':
+    # 优惠券创建
     coupon_create()

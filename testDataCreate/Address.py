@@ -40,8 +40,9 @@ def add_address(mobile):
         "cityId": city_id,
         "countyId": county_id,
         "mobile": mobile,
-        "name": f'test_{mobile[-3:]}',
-        "provinceId": province_id
+        "name": f'test_{str(mobile)[-3:]}',
+        "provinceId": province_id,
+        "isDef": 1
     }
     res = common.req.request_post('/store/api/user/addr/address', body=body, token=user_token)
     if res['code'] == 200:
@@ -51,5 +52,6 @@ def add_address(mobile):
 
 
 if __name__ == '__main__':
-    add_address(19216853000)
+    # 添加收货地址
+    add_address(mobile='19616850005')
 

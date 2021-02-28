@@ -22,10 +22,10 @@ def goods_audit(audit_num, supplier_id=None):
     goods_list_body = {
         "auditStatus": 0,
         "currentPage": 1,
-        # "supplierId": 11,  # 商家ID
         "status": 4,
         "pageSize": audit_num
     }
+
     if supplier_id is not None:
         goods_list_body['supplierId'] = supplier_id
 
@@ -42,10 +42,11 @@ def goods_audit(audit_num, supplier_id=None):
                 "id": goods_id,
                 "status": 3
             }
-            audit = common.req.request_put(url='/store/manage/goodsManager/upStatus', body=audit_body, toekn=admin_token)
+            audit = common.req.request_put(url='/store/manage/goodsManager/upStatus', body=audit_body, token=admin_token)
             if audit['code'] == 200:
                 print(f'goodsId: 【{goods_id}】审核通过')
             else:
+                print(audit_body)
                 print(f"审核异常: {audit['text']}")
             time.sleep(0.5)
     else:
@@ -53,4 +54,4 @@ def goods_audit(audit_num, supplier_id=None):
 
 
 if __name__ == '__main__':
-    goods_audit(30)
+    goods_audit(audit_num=30, supplier_id=24)

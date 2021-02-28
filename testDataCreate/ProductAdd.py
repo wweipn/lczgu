@@ -166,7 +166,7 @@ def get_goods_spu_req_vo(goods_id):
 
     # 获取商品主图,写入mainGallery中
     main_image_result = old_db.select_all(sql=f"""
-    SELECT thumbnail FROM es_goods_gallery WHERE goods_id = '{goods_id}'
+    SELECT big FROM es_goods_gallery WHERE goods_id = '{goods_id}'
     """
                                           )
     mainGallery = []
@@ -184,8 +184,8 @@ def get_goods_spu_req_vo(goods_id):
         "brandId": brand_id,  # 品牌ID
         "enableQuantity": 1000,  # 库存总和
         "warnQuantity": 10,  # 预警库存
-        "transfeeCharge": 1,  # 是否为买家承担运费 否：0 是：1
-        # "templateId": ",  # 运费模板ID
+        "transfeeCharge": 0,  # 包邮：0 不包邮：1
+        # "templateId": "1362708019229540354",  # 运费模板ID
         "isSupportAfter": 1,  # 是否支持售后7天 0:否；1:是
         # "specialTitle": ",  # 特殊说明
         # "specialContent": ",  # 特殊内容
@@ -218,6 +218,7 @@ def get_shop_goods(shop_id):
     goods_result = old_db.select_all(sql=f"""
     SELECT goods_id FROM es_goods WHERE seller_id = '{shop_id}'
     """)
+
     for goods in goods_result:
         goods_id = goods[0]
         goods_list.append(goods_id)
@@ -282,7 +283,7 @@ if __name__ == '__main__':
     # 获取老系统供应商商品
     goods_data = get_shop_goods(shop_id='63')
     # 供应商登录
-    common.account.shop_login(username="灵堡贸易", password='a123456')
+    common.account.shop_login(username="19216821598", password='a123456')
     token = common.account.get_shop_token()
     for data in goods_data:
         add_goods(goods_id=data, shop_token=token)

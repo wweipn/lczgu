@@ -21,5 +21,23 @@ def half_price_close():
                                 token=admin_token)
 
 
+def pintuan_close():
+    """
+    关闭所有拼团活动
+    :return:
+    """
+    admin_token = common.admin_token()
+    request = common.req.request_get('/store/manage/promotion/pintuan/queryPintuanList',
+                                     params={"pageSize": 30, "currentPage": 1, "status": 1},
+                                     token=admin_token)
+    for activity in request['data']['records']:
+        activity_id = activity['id']
+        common.req.request_post('/store/manage/promotion/pintuan/closePintuan',
+                                params={'id': activity_id},
+                                token=admin_token)
+
+
 if __name__ == '__main__':
-    half_price_close()
+
+    pintuan_close()  # 关闭拼团活动
+    half_price_close()  # 关闭半价活动
