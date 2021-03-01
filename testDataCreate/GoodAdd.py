@@ -131,7 +131,7 @@ def get_goods_sku_req_vo(goods_id):
     return goods_sku_req_vo
 
 
-def get_goods_spu_req_vo(goods_id):
+def get_goods_spu_req_vo(goods_id, goods_type=0):
     result = old_db.select_one(sql=f"""
     SELECT
         goods_name, category_id, goods_id, brand_id, mobile_intro, original
@@ -191,26 +191,29 @@ def get_goods_spu_req_vo(goods_id):
         # "specialContent": ",  # 特殊内容
         "detail": f'{detail}'.replace("'", '"'),  # 商品详情图
         "original": original,
-        "type": 0,  # 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
-        "mainGallery": mainGallery,  # 商品主图
+        "type": goods_type,  # 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
+        "mainGallery": mainGallery,  # 商品主图,
+        # "vipDay": 30,  # VIP天数
         "vipGallery": []  # vip主图
     }
+
+    if goods_type == 2:
+        vo['vipDay'] = 30
+        vo['vipGallery'].append({"url": original})
 
     return vo
 
 
-def add_goods(goods_id, shop_token):
+def add_goods(goods_id, token, goods_type=0):
     body = {
-        "goodsSpuReqVO": get_goods_spu_req_vo(goods_id),
+        "goodsSpuReqVO": get_goods_spu_req_vo(goods_id, goods_type),
         "goodsSkuReqVO": get_goods_sku_req_vo(goods_id)
     }
-    add = common.req.request_post(url="/store/seller/goodsManager/save", token=shop_token, body=body)
+    add = common.req.request_post(url="/store/seller/goodsManager/save", token=token, body=body)
     if add['code'] == 200:
         print('商品添加成功')
     else:
         print(add['text'])
-
-    print(str(body).replace("'", '"'))
 
 
 def get_shop_goods(shop_id):
@@ -223,6 +226,15 @@ def get_shop_goods(shop_id):
         goods_id = goods[0]
         goods_list.append(goods_id)
     return goods_list
+
+
+def get_rand_goods():
+
+    goods_result = old_db.select_one(sql=f"""
+        SELECT goods_id FROM es_goods order by rand() limit 1
+        """)
+    goods_id = goods_result[0]
+    return goods_id
 
 
 def shop_create(shop_id):
@@ -280,11 +292,16 @@ def shop_create(shop_id):
 if __name__ == '__main__':
     # # 供应商账号注册(shop_id: 老系统供应商ID)
     # create_shop = shop_create(shop_id='63')
-    # 获取老系统供应商商品
-    goods_data = get_shop_goods(shop_id='63')
+
     # 供应商登录
-    common.account.shop_login(username="19216821598", password='a123456')
-    token = common.account.get_shop_token()
-    for data in goods_data:
-        add_goods(goods_id=data, shop_token=token)
-        time.sleep(1.5)
+    common.account.shop_login(username="Wepn", password='a123456')
+    shop_token = common.account.get_shop_token()
+
+    # 根据老系统的商家ID添加商品
+    # goods_data = get_shop_goods(shop_id='63')
+    # for data in goods_data:
+    #     add_goods(goods_id=data, shop_token=token)
+    #     time.sleep(1.5)
+
+    # 添加任意一个商品
+    add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=1)

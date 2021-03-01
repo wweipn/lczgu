@@ -299,8 +299,8 @@ def goods_detail_activity():
 if __name__ == '__main__':
     # half_price_activity(goods_num=30)  # 第二件半价活动创建
     # full_discount(goods_num=10)  # 满减活动创建
-    # flash_sale(days=0, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
+    flash_sale(days=0, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
     # flash_sale(days=0, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
     # flash_sale(days=0, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
     # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
-    assemble(day=0, goods_num=10)  # 拼团活动创建
+    # assemble(day=0, goods_num=10)  # 拼团活动创建

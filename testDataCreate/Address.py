@@ -25,15 +25,16 @@ def get_ran_address_info():
     return province_id, city_id, county_id
 
 
-def add_address(mobile):
+def add_address(token):
     """
     添加收货地址
-    :param mobile: 手机号
+    :param token: 用户token
     :return:
     """
-    common.account.user_login([str(mobile)])
-    user_token = common.account.get_user_token(mobile)
     province_id, city_id, county_id = get_ran_address_info()
+
+    get_mobile = common.req.request_get(url='/store/api/account/userinfo', token=token)
+    mobile = get_mobile['data']['mobile']
     body = {
         "addr": "稻兴环球科创中心",
         "addressName": "公司地址",
@@ -44,14 +45,20 @@ def add_address(mobile):
         "provinceId": province_id,
         "isDef": 1
     }
-    res = common.req.request_post('/store/api/user/addr/address', body=body, token=user_token)
+    res = common.req.request_post('/store/api/user/addr/address', body=body, token=token)
     if res['code'] == 200:
         print(res['text'])
     else:
         print(f"地址添加失败\n{res['text']}")
+        return
+
+    return res['data']['id'], res['data']['provinceId']
 
 
 if __name__ == '__main__':
+    # 登录用户账号,并获取token
+    user_token = common.user_token(mobile=19216850004)
+
     # 添加收货地址
-    add_address(mobile='19616850005')
+    add_address(token=user_token)
 

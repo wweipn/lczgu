@@ -35,8 +35,7 @@ class ApiRequests:
             'url': res.url,
             'req_header': res.request.headers,
             'rep_header': res.headers,
-            'body': res.request.body,
-            'rep_time': res.elapsed.total_seconds()
+            'body': res.request.body
         }
         return result
 

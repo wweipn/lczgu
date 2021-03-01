@@ -14,9 +14,8 @@ def goods_audit(audit_num, supplier_id=None):
     :return:
     """
 
-    # 登录运营后台,保存token
-    common.account.admin_login()
-    admin_token = common.account.get_admin_token()
+    # 登录运营后台, 获取token
+    admin_token = common.admin_token()
 
     # 定义获取审核列表的请求体
     goods_list_body = {
@@ -54,4 +53,5 @@ def goods_audit(audit_num, supplier_id=None):
 
 
 if __name__ == '__main__':
-    goods_audit(audit_num=30, supplier_id=24)
+    # 商品审核
+    goods_audit(audit_num=30, supplier_id=27)

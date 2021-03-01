@@ -161,8 +161,10 @@ def get_goods_url():
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    common.account.user_login(['19216850004'])
-    user_token = common.account.get_user_token(mobile='19216850004')
+    user_token = common.user_token(mobile=19216850004)
 
     # 添加评论/追评(add_type 1: 评价, 3: 追评 )
-    add_evaluate(token=user_token, add_type=1)
+    # add_evaluate(token=user_token, add_type=1)
+
+    # 获取图片
+    print(get_goods_url())
