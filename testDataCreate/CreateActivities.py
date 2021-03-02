@@ -127,7 +127,7 @@ def half_price_activity(goods_num):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
     end_time = (now + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -261,11 +261,20 @@ def assemble(sql_limit=0, goods_type=1, day=0, goods_num=10):
     request = common.req.request_post(url='/store/manage/promotion/pintuan/savePintuan',
                                       body=body,
                                       token=admin_token())
-    print(f"""
-    {str(body).replace("'", '"')}
-    {request['text']}
+    if request['code'] != 200:
+        fail_goods_list = []
+        for i in body["goodsList"]:
+            sku_id = i['skuId']
+            fail_goods_list.append(sku_id)
 
-    """)
+        print(f"""
+        添加失败
+        sku列表: {fail_goods_list}""")
+    else:
+        print(f"""
+        {str(body).replace("'", '"')}
+        {request['text']}
+        """)
 
 
 def goods_detail_activity():
@@ -298,9 +307,10 @@ def goods_detail_activity():
 
 if __name__ == '__main__':
     # half_price_activity(goods_num=30)  # 第二件半价活动创建
-    # full_discount(goods_num=10)  # 满减活动创建
-    flash_sale(days=0, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
-    # assemble(day=0, goods_num=10)  # 拼团活动创建
+    # full_discount(goods_num=30)  # 满减活动创建
+    flash_sale(days=1, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
+    flash_sale(days=1, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
+    flash_sale(days=1, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
+    flash_sale(days=1, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
+    # assemble(day=1, goods_num=30)  # 拼团活动创建
+    # assemble(day=2, goods_num=30)  # 拼团活动创建

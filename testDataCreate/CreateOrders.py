@@ -8,15 +8,12 @@ from testDataCreate import Address
 
 
 def get_default_addr(token):
-
     try:
         request = common.req.request_get(url='/store/api/user/addr/address/default', token=token)
         addr_id = request['data']['id']
         province_id = request['data']['provinceId']
     except TypeError:
-        add_addr = Address.add_address(token=token)
-        addr_id = add_addr['data']['id']
-        province_id = add_addr['data']['provinceId']
+        addr_id, province_id = Address.add_address(token=token)
 
     return addr_id, province_id
 
@@ -123,22 +120,24 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
                                              body=body,
                                              token=token)
     print(f"""
-    【获取订单结算信息】
+    【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
     请求信息
     {body}
+
     返回信息
     {discounts_info['text']}
     """.replace("'", '"').replace('None', 'null'))
-    time.sleep(0.5)
+    # time.sleep(0.5)
 
     # 获取商品结算信息
     goods_info = common.req.request_post(url='/store/api/order/getSettleGoodsInfo',
-                                             body=body,
-                                             token=token)
+                                         body=body,
+                                         token=token)
     print(f"""
-    【获取商品结算信息】
+    【获取商品结算信息】(/store/api/order/getSettleGoodsInfo)
     请求信息
     {body}
+
     返回信息
     {goods_info['text']}
     """.replace("'", '"').replace('None', 'null'))
@@ -171,16 +170,26 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
                                             token=token)
 
     print(f"""
-    【提交订单】
+    【提交订单】(/store/api/order/confirmOrder)
     请求信息
     {body} 
+
     返回信息
     {confirm_order['text']}
-    ==============================================================================================================
     """.replace("'", '"').replace('None', 'null'))
+    # 取出提交订单接口返回的价格和订单ID
+    try:
+        price = confirm_order['data']['price']
+        order_id = confirm_order['data']['orderCode']
+    except TypeError:
+        print('提交订单所需数据获取失败')
+        return
+
+    # 调用支付接口
+    order_pay(price=price, order_id=order_id, token=token)
 
 
-def batch_order_rand_create(token, num=100):
+def batch_order_rand_create(token, num):
     """
     单个用户创建多个订单
     :return:
@@ -238,34 +247,93 @@ def batch_order_rand_create(token, num=100):
         {body}
         【获取订单结算金额】
         响应：
-        {discounts_info['text']},
+        {discounts_info['text']}
         【提交订单】  
         返回
-        {confirm_order['text']},
+        {confirm_order['text']}
         第{a}次订单创建
-        ------------------------------------
         """)
         time.sleep(0.5)
+
+        # 取出提交订单接口返回的价格和订单ID
+        price = confirm_order['data']['price']
+        order_id = confirm_order['data']['orderCode']
+
+        # 调用支付接口
+        order_pay(price=price, order_id=order_id, token=token)
+
+
+def order_pay(price, order_id, token):
+    pay_password_check(token=token)
+    body = {
+        "balancePayAmount": price,
+        "orderId": order_id,
+        "paymentPassword": "123456",
+        "thirdPartyPayAmount": 0,
+        "type": 0
+    }
+
+    pay = common.req.request_post(url='/store/api/trade/pay', token=token, body=body)
+
+    print(f"""
+    【订单支付】(/store/api/trade/pay)
+    请求：
+    {body}
+
+    响应：
+    {pay['text']}
+    ==============================================================================================================
+    """)
+    time.sleep(0.5)
+
+
+def pay_password_check(token):
+    set_info = common.req.request_get(url='/store/api/account/set-info', token=token)
+    has_pay_password = set_info['data']['hasPayPass']
+    if has_pay_password is True:
+        return
+    else:
+        # 获取当前账户手机号
+        get_mobile = common.req.request_get(url='/store/api/account/userinfo', token=token)
+        mobile = get_mobile['data']['mobile']
+
+        # 提交修改密码手机验证码, 获取修改密码的token
+        sms_code_valid = common.req.request_get(url='/store/common/sms/valid',
+                                                token=token,
+                                                params={'mobile': mobile,
+                                                        'type': 'SET_PAY_PWD',
+                                                        'code': 111111})
+        set_password_token = sms_code_valid['data']
+
+        # 设置支付密码
+        set_password_body = {
+            'codeToken': set_password_token,
+            'password': 123456
+        }
+
+        common.req.request_post(url='/store/api/account/pay/set-pass', token=token, body=set_password_body)
 
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=19216850004)
+    user_token = common.user_token(mobile=18123929299)
 
     # 创建随机批量订单
     # batch_order_rand_create(token=user_token, mobile=19216850004, num=20)  # 创建单商品订单
 
     # 创建拼团订单
-    # create_order(token=user_token, buy_num=1, sku_id=1353289069920022530,
-    #              order_source=1, activity_type=0, activity_id=1365861771373568002)
+    # for i in range(11):
+    #     create_order(token=user_token, buy_num=1, sku_id=1352097102078980097,
+    #                  order_source=1, activity_type=0, activity_id=1366383328705753089)
+    #     time.sleep(0.5)
 
     # 创建限时抢购订单
-    # create_order(token=user_token, buy_num=1, sku_id=1353289298035634177,
-    #              order_source=1, activity_type=1, activity_id=1366198754356539393)
+    # create_order(token=user_token, buy_num=1, sku_id=1353289428583346178,
+    #              order_source=1, activity_type=1, activity_id=1366301192048640002)
 
     # 立即购买(普通/臻宝/VIP商品订单)
-    create_order(token=user_token, buy_num=2, spu_id=1366289834699685889, sku_id=1366289834708074498, order_source=2,
-                 coupon_auto_use=0)
+    create_order(token=user_token, buy_num=2, spu_id=1353289277412241409, sku_id=1353289277928140801, order_source=2,
+                 coupon_auto_use=1, coupon_id=1364506059418640386)
 
     # 购物车商品创建订单
     # create_order(token=user_token, order_source=0)

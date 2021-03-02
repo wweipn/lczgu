@@ -35,24 +35,24 @@ def add_address(token):
 
     get_mobile = common.req.request_get(url='/store/api/account/userinfo', token=token)
     mobile = get_mobile['data']['mobile']
+    name = get_mobile['data']['nickname']
     body = {
-        "addr": "稻兴环球科创中心",
+        "addr": "稻兴环球科创中心B座2001",
         "addressName": "公司地址",
         "cityId": city_id,
         "countyId": county_id,
         "mobile": mobile,
-        "name": f'test_{str(mobile)[-3:]}',
+        "name": name,
         "provinceId": province_id,
         "isDef": 1
     }
     res = common.req.request_post('/store/api/user/addr/address', body=body, token=token)
     if res['code'] == 200:
         print(res['text'])
+        return res['data']['id'], res['data']['provinceId']
     else:
         print(f"地址添加失败\n{res['text']}")
         return
-
-    return res['data']['id'], res['data']['provinceId']
 
 
 if __name__ == '__main__':
