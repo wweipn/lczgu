@@ -100,9 +100,9 @@ def get_goods_sku_req_vo(goods_id):
                 "linePrice": round(price * 120 / 100, 2),  # 市场价, 销售价基础+20%
                 "retailPrice": round(price * 105 / 100, 2),  # 建议零售价, 销售价基础+5%
                 "profitPrice": round(cost * 110 / 100, 2),  # 成本价, 供货价基础+10%
-                "enableQuantity": 500,
+                "enableQuantity": 10,
                 "name": "",
-                "warnQuantity": 50,
+                "warnQuantity": 5,
                 "categoryId": category_id,
                 "sn": old_sku_id,
                 "thumbnail": thumbnail,
@@ -304,4 +304,5 @@ if __name__ == '__main__':
     #     time.sleep(1.5)
 
     # 添加任意一个商品
-    add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=1)
+    for i in range(1):
+        add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=0)

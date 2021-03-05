@@ -9,14 +9,20 @@ def get_ran_address_info():
     :return:
     """
     # 调用查询地址接口获取省份列表, 随机取其中一条数据
-    province_list = common.req.request_get('/store/common/area/list/0')
-    province = random.choice(province_list['text']['data'])
-    province_id = province['id']
+    while 1:
+        province_list = common.req.request_get('/store/common/area/list/0')
+        province = random.choice(province_list['text']['data'])
+        province_id = province['id']
+        if province_id not in (810000, 820000, 710000, 460000):
+            break
 
     # 调用查询地址接口获取城市列表, 随机取其中一条数据
-    city_list = common.req.request_get(f"/store/common/area/list/{province_id}")
-    city = random.choice(city_list['text']['data'])
-    city_id = city['id']
+    while 1:
+        city_list = common.req.request_get(f"/store/common/area/list/{province_id}")
+        city = random.choice(city_list['text']['data'])
+        city_id = city['id']
+        if city_id not in (441900, 442000):
+            break
 
     # 调用查询地址接口获取区列表, 随机取其中一条数据
     county_list = common.req.request_get(f"/store/common/area/list/{city_id}")
@@ -57,8 +63,9 @@ def add_address(token):
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=19216850004)
+    user_token = common.user_token(mobile=19216823022)
 
     # 添加收货地址
     add_address(token=user_token)
+
 

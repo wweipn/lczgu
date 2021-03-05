@@ -4,7 +4,36 @@
 
 import common
 import time
+import csv
 from testDataCreate import Address
+from testDataCreate import UserMoney
+
+
+def pay_password_check(token):
+    set_info = common.req.request_get(url='/store/api/account/set-info', token=token)
+    has_pay_password = set_info['data']['hasPayPass']
+    if has_pay_password is True:
+        return
+    else:
+        # 获取当前账户手机号
+        get_mobile = common.req.request_get(url='/store/api/account/userinfo', token=token)
+        mobile = get_mobile['data']['mobile']
+
+        # 提交修改密码手机验证码, 获取修改密码的token
+        sms_code_valid = common.req.request_get(url='/store/common/sms/valid',
+                                                token=token,
+                                                params={'mobile': mobile,
+                                                        'type': 'SET_PAY_PWD',
+                                                        'code': 111111})
+        set_password_token = sms_code_valid['data']
+
+        # 设置支付密码
+        set_password_body = {
+            'codeToken': set_password_token,
+            'password': 123456
+        }
+
+        common.req.request_post(url='/store/api/account/pay/set-pass', token=token, body=set_password_body)
 
 
 def get_default_addr(token):
@@ -33,10 +62,10 @@ def get_cart_list(token):
     return cart_list
 
 
-def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=None,
+def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=None, sku_id=None,
                  spu_id=None, activity_type=None, activity_id=None,
                  coupon_id=None, half_id=None, full_reduction_id=None,
-                 share_dynamic_id=None, share_user_id=None):
+                 share_dynamic_id=None, share_user_id=None, save_data=None):
     """
     创建订单
     :param token: 用户token
@@ -52,6 +81,8 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
     :param full_reduction_id: 满减活动ID, order_source=0, 2时选填
     :param activity_type: 0: 拼团, 1: 限时抢购
     :param activity_id: 活动ID
+    :param need_pause: 提交订单前暂停(回车继续)
+    :param save_data: 是否返回提交订单所需的数据
     :return:
     """
     if order_source not in (0, 1, 2):
@@ -109,7 +140,7 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
     # 判断是否自动使用优惠券
     if coupon_auto_use == 1:
         body['isUseCoupon'] = 'true'
-    else:
+    elif coupon_auto_use == 0 and coupon_id is None:
         body['isUseCoupon'] = 'false'
 
     addr_id, province_id = get_default_addr(token)
@@ -127,7 +158,6 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
     返回信息
     {discounts_info['text']}
     """.replace("'", '"').replace('None', 'null'))
-    # time.sleep(0.5)
 
     # 获取商品结算信息
     goods_info = common.req.request_post(url='/store/api/order/getSettleGoodsInfo',
@@ -141,8 +171,9 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
     返回信息
     {goods_info['text']}
     """.replace("'", '"').replace('None', 'null'))
-    time.sleep(0.5)
 
+    # 提交订单前的数据处理操作
+    # 购物车方式走以下处理
     if order_source == 0:
         cart_list = []
         del body['shoppingCartDisReqVO']
@@ -155,14 +186,37 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
             'cartList': cart_list
         }
 
-    # 在提交参数中删除省份ID,添加收货地址
+    # 在提交参数中删除省份ID,并添加收货地址
     del body['provinceId']
     body['userAddressId'] = addr_id
 
-    # 判断是否自动使用优惠券
+    # 获取结算页返回的优惠券
     if coupon_auto_use == 1:
         body['couponId'] = discounts_info['data']['couponId']
         body['isUseCoupon'] = 'true'
+    else:
+        pass
+
+    # 判断是否需要在提交订单之前中止
+    if need_pause == 1:
+        print(str(body).replace("'", '"'))
+        a = int(input('1:继续提交订单\n'))
+        if a == 1:
+            pass
+        else:
+            return
+
+    # 获取管理后台token
+    # admin_token = common.admin_token()
+
+    # 修改用户可提现余额/臻宝/活动余额(manual: 0:直接充值可提现余额, 1:手动输入)
+    # UserMoney.update_user_money(token=admin_token, mobile=18123929299, update_type=1, money=10, money_type=1)
+
+    # 判断是否储存提交订单数据
+    if save_data == 1:
+        return token, body
+    else:
+        pass
 
     # 提交订单
     confirm_order = common.req.request_post(url='/store/api/order/confirmOrder',
@@ -184,6 +238,14 @@ def create_order(token, order_source, coupon_auto_use=0, buy_num=None, sku_id=No
     except TypeError:
         print('提交订单所需数据获取失败')
         return
+
+    # 判断是否需要在提交订单之前中止
+    if need_pause == 1:
+        b = int(input('1:继续支付\n'))
+        if b == 1:
+            pass
+        else:
+            return
 
     # 调用支付接口
     order_pay(price=price, order_id=order_id, token=token)
@@ -212,55 +274,14 @@ def batch_order_rand_create(token, num):
     LIMIT {num}""")
 
     a = 0
-    addr_id, province_id = get_default_addr(token)
 
     for result in select:
         sku_id = result[0]
         spu_id = result[1]
-
-        body = {
-            "type": 2,
-            "orderSettleBuyNowReqVO": {
-                "buyNum": 1,
-                "remark": "",
-                "skuId": sku_id,
-                "spuId": spu_id,
-                "provinceId": province_id
-            }
-        }
-
-        # 获取订单结算信息
-        discounts_info = common.req.request_post(url='/store/api/order/getSettleDiscountsInfo',
-                                                 body=body,
-                                                 token=token)
-
-        # 提交订单
-        del body['provinceId']  # 删除省份信息
-        body['userAddressId'] = addr_id  # 添加地址信息字段
-        confirm_order = common.req.request_post(url='/store/api/order/confirmOrder',
-                                                body=body,
-                                                token=token)
+        create_order(token=token, buy_num=1, spu_id=spu_id, sku_id=sku_id, coupon_auto_use=1, order_source=2)
         a += 1
-
-        print(f"""
-        请求：
-        {body}
-        【获取订单结算金额】
-        响应：
-        {discounts_info['text']}
-        【提交订单】  
-        返回
-        {confirm_order['text']}
-        第{a}次订单创建
-        """)
         time.sleep(0.5)
-
-        # 取出提交订单接口返回的价格和订单ID
-        price = confirm_order['data']['price']
-        order_id = confirm_order['data']['orderCode']
-
-        # 调用支付接口
-        order_pay(price=price, order_id=order_id, token=token)
+        print(f'第{a}次创建订单')
 
 
 def order_pay(price, order_id, token):
@@ -282,58 +303,52 @@ def order_pay(price, order_id, token):
 
     响应：
     {pay['text']}
-    ==============================================================================================================
     """)
-    time.sleep(0.5)
-
-
-def pay_password_check(token):
-    set_info = common.req.request_get(url='/store/api/account/set-info', token=token)
-    has_pay_password = set_info['data']['hasPayPass']
-    if has_pay_password is True:
-        return
-    else:
-        # 获取当前账户手机号
-        get_mobile = common.req.request_get(url='/store/api/account/userinfo', token=token)
-        mobile = get_mobile['data']['mobile']
-
-        # 提交修改密码手机验证码, 获取修改密码的token
-        sms_code_valid = common.req.request_get(url='/store/common/sms/valid',
-                                                token=token,
-                                                params={'mobile': mobile,
-                                                        'type': 'SET_PAY_PWD',
-                                                        'code': 111111})
-        set_password_token = sms_code_valid['data']
-
-        # 设置支付密码
-        set_password_body = {
-            'codeToken': set_password_token,
-            'password': 123456
-        }
-
-        common.req.request_post(url='/store/api/account/pay/set-pass', token=token, body=set_password_body)
+    # time.sleep(0.5)
 
 
 if __name__ == '__main__':
+
     # 登录用户账号,并获取token
     user_token = common.user_token(mobile=18123929299)
 
-    # 创建随机批量订单
-    # batch_order_rand_create(token=user_token, mobile=19216850004, num=20)  # 创建单商品订单
+    for i in range(1):
+        print(f'====================第{i+1}次执行开始=======================')
 
-    # 创建拼团订单
-    # for i in range(11):
-    #     create_order(token=user_token, buy_num=1, sku_id=1352097102078980097,
-    #                  order_source=1, activity_type=0, activity_id=1366383328705753089)
-    #     time.sleep(0.5)
+        # 立即购买(普通/臻宝/VIP商品订单)
+        create_order(token=user_token, buy_num=1, sku_id=1353286470567227394, spu_id=1353286470466564098,
+                     order_source=2, coupon_auto_use=0, need_pause=0)
 
-    # 创建限时抢购订单
-    # create_order(token=user_token, buy_num=1, sku_id=1353289428583346178,
-    #              order_source=1, activity_type=1, activity_id=1366301192048640002)
+        # 创建随机批量订单
+        # batch_order_rand_create(token=user_token, num=15)  # 创建单商品订单
 
-    # 立即购买(普通/臻宝/VIP商品订单)
-    create_order(token=user_token, buy_num=2, spu_id=1353289277412241409, sku_id=1353289277928140801, order_source=2,
-                 coupon_auto_use=1, coupon_id=1364506059418640386)
+        # 创建拼团订单
+        # create_order(token=user_token, buy_num=1, sku_id=1353288876118011905,
+        #              order_source=1, activity_type=0, activity_id=1367449544983408641)
+        # time.sleep(0.5)
 
-    # 购物车商品创建订单
-    # create_order(token=user_token, order_source=0)
+        # 创建限时抢购订单
+        # for i in range(1):
+        #     create_order(token=user_token, buy_num=1, sku_id=1352086103410126849,
+        #                  order_source=1, activity_type=1, activity_id=1366991643168776193)
+
+        # 购物车商品创建订单
+        # create_order(token=user_token, order_source=0, need_pause=1)
+
+        print(f'====================第{i + 1}次执行结束=======================')
+        pass
+
+    # 生成压测提交订单接口的数据
+    # 登录多个用户账号,并获取token
+    # common.account.user_login(source=1)
+    # user_token_list = common.account.get_user_token()
+    #
+    # file = common.get_file_path('stress_testing.csv', 'test_file')
+    # with open(file, 'w', newline='', encoding='utf-8') as StressTest:
+    #     csv_file_writer = csv.writer(StressTest)
+    #     csv_file_writer.writerow(['token', 'body'])
+    #     for data in user_token_list:
+    #         token, body = create_order(token=data[1], buy_num=1, save_data=1, spu_id=1367086328906289154,
+    #                                    sku_id=1367086329334108161, order_source=2, coupon_auto_use=0)
+    #         new_body = str(body).replace("'", '"')
+    #         csv_file_writer.writerow([token, new_body])

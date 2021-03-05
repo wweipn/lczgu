@@ -25,6 +25,7 @@ class ApiRequests:
             headers['Authorization'] = f'Bearer {token}'
         else:
             pass
+        headers['platform'] = 'ios'
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),
@@ -55,6 +56,7 @@ class ApiRequests:
             headers['Authorization'] = f'Bearer {token}'
         else:
             pass
+        headers['platform'] = 'ios'
         res = requests.put(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),
@@ -85,6 +87,7 @@ class ApiRequests:
             headers['Authorization'] = f'Bearer {token}'
         else:
             pass
+        headers['platform'] = 'ios'
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),

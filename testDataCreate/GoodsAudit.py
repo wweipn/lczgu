@@ -54,4 +54,4 @@ def goods_audit(audit_num, supplier_id=None):
 
 if __name__ == '__main__':
     # 商品审核
-    goods_audit(audit_num=30, supplier_id=27)
+    goods_audit(audit_num=10, supplier_id=27)

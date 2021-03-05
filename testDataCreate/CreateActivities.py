@@ -13,7 +13,7 @@ def admin_token():
     return token
 
 
-def get_activity_goods(sql_limit=0, num=10, activity_type=1, activity_num=10, limit_num=10, goods_type=1):
+def get_activity_goods(sql_limit=0, num=10, activity_type=1, activity_num=10, limit_num=5, goods_type=1):
     """
     生成创建活动时所需的商品数据
     :param goods_type: 商品数据类型: 0: 验证商品详情数据 1: 常规
@@ -78,7 +78,7 @@ def get_activity_goods(sql_limit=0, num=10, activity_type=1, activity_num=10, li
         AND spu.type = 0 
         AND sku.is_deleted = 0
         AND sku.price > 0
-        -- AND sku.id = 1351869437325701121
+        -- AND sku.id = 1353289199427547137
         ORDER BY RAND() 
         LIMIT {num}"""
 
@@ -158,7 +158,7 @@ def full_discount(goods_num):
     full_reduction_detail = []
     # 填写满减活动信息
     while 1:
-        add_price = input('输入门槛: 0: 退出\n')
+        add_price = input('输入门槛(0:退出): ')
         if add_price == '0':
             break
         reduce_price = input('输入减免金额: ')
@@ -181,7 +181,7 @@ def full_discount(goods_num):
         "startTime": start_time,
         "endTime": end_time,
         "modeType": 0,
-        "limitNum": 10,
+        "limitNum": 5,
         "goodsList": goods_list,
         "addReduce": full_reduction_detail
     }
@@ -212,7 +212,7 @@ def flash_sale(time_line, sql_limit=0, goods_type=1, days=0, goods_num=10):
     now = datetime.now()
     start_time = (now + timedelta(days=days)).strftime('%Y-%m-%d')
     goods_list = get_activity_goods(activity_type=2, num=goods_num, sql_limit=sql_limit, goods_type=goods_type)
-    seckill_name = f"限时抢购{start_time}({time_line})"
+    seckill_name = f"限时抢购({start_time} {time_line})"
 
     body = {
      "startTime": start_time,
@@ -306,11 +306,11 @@ def goods_detail_activity():
 
 
 if __name__ == '__main__':
-    # half_price_activity(goods_num=30)  # 第二件半价活动创建
+    half_price_activity(goods_num=30)  # 第二件半价活动创建
     # full_discount(goods_num=30)  # 满减活动创建
-    flash_sale(days=1, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
-    flash_sale(days=1, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
-    flash_sale(days=1, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
-    flash_sale(days=1, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
-    # assemble(day=1, goods_num=30)  # 拼团活动创建
+    # flash_sale(days=0, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=0, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=0, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
+    # assemble(day=0, goods_num=30)  # 拼团活动创建
     # assemble(day=2, goods_num=30)  # 拼团活动创建

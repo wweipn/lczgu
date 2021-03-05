@@ -14,6 +14,7 @@ class Account(ApiRequests, Database):
     test_file_path = os.path.join(temp, 'test_file')
 
     # 定义存储token的文件
+    user_list_file = os.path.join(test_file_path, 'user_list.csv')
     user_token_file = os.path.join(test_file_path, 'user_token.csv')
     shop_token_file = os.path.join(test_file_path, 'shop_token.csv')
     admin_token_file = os.path.join(test_file_path, 'admin_token.csv')
@@ -109,7 +110,7 @@ class Account(ApiRequests, Database):
         login_user_list = []
         # 读取csv文件中的用户账号并写入login_user_list
         if source == 1:
-            with open(self.user_token_file, 'r', encoding='utf-8') as UserListFile:
+            with open(self.user_list_file, 'r', encoding='utf-8') as UserListFile:
                 csv_file_read = csv.reader(UserListFile)
                 next(csv_file_read)
                 for row in csv_file_read:

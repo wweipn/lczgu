@@ -16,7 +16,7 @@ def get_host(env='dev'):
         return 'http://192.168.1.8:8101'  # 测试环境后台
 
     elif env == 'pro':
-        return ''  # 线上环境,展示用不上
+        return ''  # 线上环境,暂时用不上
 
 
 def get_db(env='dev'):

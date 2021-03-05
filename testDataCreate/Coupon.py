@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 import random
 
 
-def get_category():
+def get_category(num=5):
     """
     随机获取十个三级分类
     :return: 分类字符串
     """
-    result = common.db.select_all(sql="""
+    result = common.db.select_all(sql=f"""
     SELECT
         id
     FROM
@@ -20,7 +20,7 @@ def get_category():
     WHERE 
         level = 3
     ORDER BY RAND()
-    LIMIT 10
+    LIMIT {num}
     """)
     category_detail = ''
     for category in result:
@@ -29,7 +29,7 @@ def get_category():
     return category_detail[:-1]
 
 
-def get_goods():
+def get_goods(num=30):
     """
     随机获取十个sku
     :return: sku字符串
@@ -45,7 +45,7 @@ def get_goods():
     AND	spu.status = 3
     AND spu.type = 0   
         ORDER BY RAND()
-    LIMIT 10
+    LIMIT {num}
         """)
 
     goods_detail = ''
@@ -64,8 +64,11 @@ def coupon_create(vip=None):
     coupon_type = int(input('获取方式(0: 商品详情页领取, 1: 新用户注册赠送, 2: VIP赠送, 3: 后台发放): \n'))
     use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
 
-    coupon_price = random.randint(10, 60)
-    coupon_threshold_price = random.randint(100, 300)
+    # coupon_price = random.randint(10, 60)
+    # coupon_threshold_price = random.randint(100, 300)
+    coupon_price = int(input('请输入优惠券金额:\n'))
+    coupon_threshold_price = int(input('请输入优惠券门槛:\n'))
+
     body = {
         "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
         "couponPrice": coupon_price,
