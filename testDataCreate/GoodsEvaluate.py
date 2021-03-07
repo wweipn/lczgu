@@ -167,4 +167,4 @@ if __name__ == '__main__':
     # add_evaluate(token=user_token, add_type=1)
 
     # 获取图片
-    print(get_goods_url())
+    print(content_get())

@@ -5,6 +5,7 @@
 import common
 from datetime import datetime, timedelta
 import random
+import csv
 
 
 def get_category(num=5):
@@ -70,7 +71,8 @@ def coupon_create(vip=None):
     coupon_threshold_price = int(input('请输入优惠券门槛:\n'))
 
     body = {
-        "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
+        # "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
+        "title": f"压测专用券1号",
         "couponPrice": coupon_price,
         "couponThresholdPrice": coupon_threshold_price,
         "scopeDescription": "优惠券使用范围描述",
@@ -102,13 +104,14 @@ def coupon_create(vip=None):
     if coupon_type == 0:
         # 商品详情页获取, 默认限领数量为1, 发放数量为100
         body['userType'] = 0 if vip is None else 1
-        body['createNum'] = 100
+        body['createNum'] = 10
         body['limitNum'] = 1
 
     # 优惠券使用范围
     if use_scope == 0:
         # 全品
         body['scopeId'] = 0
+
     elif use_scope == 1:
         # 部分分类
         body['scopeId'] = get_category()
@@ -138,6 +141,27 @@ def coupon_create(vip=None):
     """)
 
 
+def receive_coupon(token, coupon_id, save_data=None):
+
+    url = f'/store/api/promotion/member-coupon/{coupon_id}/receive'
+    # common.req.request_post(url=url)
+
+    if save_data == 1:
+        return token, url
+
+
 if __name__ == '__main__':
     # 优惠券创建
-    coupon_create()
+    # coupon_create()
+
+    # 生成压测数据
+    common.account.user_login(source=1)
+    user_token_list = common.account.get_user_token()
+    file = common.get_file_path('batch_receive_coupon.csv', 'test_file')
+    with open(file, 'w', newline='', encoding='utf-8') as StressTest:
+        csv_file_writer = csv.writer(StressTest)
+        csv_file_writer.writerow(['token', 'url'])
+        for data in user_token_list:
+            token1, body = receive_coupon(token=data[1], save_data=1, coupon_id=1367814438450647041)
+            new_body = str(body).replace("'", '"')
+            csv_file_writer.writerow([token1, new_body])

@@ -19,3 +19,9 @@ def user_token(mobile):
     account.user_login([str(mobile)])
     token = account.get_user_token(mobile=str(mobile))
     return token
+
+
+def shop_token(shop_name):
+    account.shop_login(username=shop_name, password='a123456')
+    token = account.get_shop_token()
+    return token

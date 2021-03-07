@@ -78,7 +78,7 @@ def get_activity_goods(sql_limit=0, num=10, activity_type=1, activity_num=10, li
         AND spu.type = 0 
         AND sku.is_deleted = 0
         AND sku.price > 0
-        -- AND sku.id = 1353289199427547137
+        -- AND sku.id = 1353289219111415809
         ORDER BY RAND() 
         LIMIT {num}"""
 
@@ -149,9 +149,10 @@ def half_price_activity(goods_num):
     """)
 
 
-def full_discount(goods_num):
+def full_discount(goods_num, limit_num=5):
     """
     创建满减活动
+    :param limit_num: 限制参与次数
     :param goods_num: 商品数量
     :return:
     """
@@ -181,7 +182,7 @@ def full_discount(goods_num):
         "startTime": start_time,
         "endTime": end_time,
         "modeType": 0,
-        "limitNum": 5,
+        "limitNum": limit_num,
         "goodsList": goods_list,
         "addReduce": full_reduction_detail
     }
@@ -267,14 +268,15 @@ def assemble(sql_limit=0, goods_type=1, day=0, goods_num=10):
             sku_id = i['skuId']
             fail_goods_list.append(sku_id)
 
-        print(f"""
-        添加失败
-        sku列表: {fail_goods_list}""")
-    else:
-        print(f"""
-        {str(body).replace("'", '"')}
-        {request['text']}
-        """)
+        print(f"""添加失败
+        sku列表: {fail_goods_list}""".replace("'", '"'))
+
+    print(f"""请求参数
+    {body}
+
+    返回参数
+    {request['text']}
+    """.replace("'", '"'))
 
 
 def goods_detail_activity():
@@ -306,11 +308,13 @@ def goods_detail_activity():
 
 
 if __name__ == '__main__':
-    half_price_activity(goods_num=30)  # 第二件半价活动创建
+    pass
+    # half_price_activity(goods_num=30)  # 第二件半价活动创建
     # full_discount(goods_num=30)  # 满减活动创建
-    # flash_sale(days=0, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
-    # assemble(day=0, goods_num=30)  # 拼团活动创建
-    # assemble(day=2, goods_num=30)  # 拼团活动创建
+    assemble(day=1, goods_num=30)  # 拼团活动创建
+    assemble(day=2, goods_num=30)  # 拼团活动创建
+    # flash_sale(days=1, time_line='09:00:00-11:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=1, time_line='12:00:00-15:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=1, time_line='16:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=1, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
+

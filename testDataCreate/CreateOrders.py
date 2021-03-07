@@ -236,7 +236,7 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
         price = confirm_order['data']['price']
         order_id = confirm_order['data']['orderCode']
     except TypeError:
-        print('提交订单所需数据获取失败')
+        print('支付接口所需数据获取失败')
         return
 
     # 判断是否需要在提交订单之前中止
@@ -273,15 +273,15 @@ def batch_order_rand_create(token, num):
     ORDER BY RAND()
     LIMIT {num}""")
 
-    a = 0
+    a = 1
 
     for result in select:
+        print(f'===========================第{a}次创建订单===========================')
         sku_id = result[0]
         spu_id = result[1]
         create_order(token=token, buy_num=1, spu_id=spu_id, sku_id=sku_id, coupon_auto_use=1, order_source=2)
         a += 1
-        time.sleep(0.5)
-        print(f'第{a}次创建订单')
+        print(f'===================================================================')
 
 
 def order_pay(price, order_id, token):
@@ -313,33 +313,37 @@ if __name__ == '__main__':
     user_token = common.user_token(mobile=18123929299)
 
     for i in range(1):
-        print(f'====================第{i+1}次执行开始=======================')
+        print(f'====================第{i + 1}次执行开始=======================')
 
         # 立即购买(普通/臻宝/VIP商品订单)
-        create_order(token=user_token, buy_num=1, sku_id=1353286470567227394, spu_id=1353286470466564098,
-                     order_source=2, coupon_auto_use=0, need_pause=0)
+        # create_order(token=user_token, buy_num=1, sku_id=1366289834708074498, spu_id=1366289834699685889,
+        #              order_source=2, coupon_auto_use=1, need_pause=1)
 
         # 创建随机批量订单
-        # batch_order_rand_create(token=user_token, num=15)  # 创建单商品订单
+        # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_order(token=user_token, buy_num=1, sku_id=1353288876118011905,
-        #              order_source=1, activity_type=0, activity_id=1367449544983408641)
-        # time.sleep(0.5)
+        # create_order(token=user_token, buy_num=1, sku_id=1353289208831176706,
+        #              order_source=1, activity_type=0, activity_id=1368103269305434114, need_pause=0)
 
         # 创建限时抢购订单
-        # for i in range(1):
-        #     create_order(token=user_token, buy_num=1, sku_id=1352086103410126849,
-        #                  order_source=1, activity_type=1, activity_id=1366991643168776193)
+        # create_order(token=user_token, buy_num=1, sku_id=1352097292064174082,
+        #              order_source=1, activity_type=1, activity_id=1368102945052180481)
 
         # 购物车商品创建订单
-        # create_order(token=user_token, order_source=0, need_pause=1)
+        create_order(token=user_token, order_source=0, need_pause=0)
 
         print(f'====================第{i + 1}次执行结束=======================')
         pass
 
-    # 生成压测提交订单接口的数据
-    # 登录多个用户账号,并获取token
+    #   多账号创建订单
+    # common.account.user_login(source=1)
+    # user_token_list = common.account.get_user_token()
+    # for data in user_token_list:
+    #     batch_order_rand_create(token=data[1], num=2)
+
+    #   生成压测提交订单接口的数据
+    #   登录多个用户账号,并获取token
     # common.account.user_login(source=1)
     # user_token_list = common.account.get_user_token()
     #
@@ -348,7 +352,7 @@ if __name__ == '__main__':
     #     csv_file_writer = csv.writer(StressTest)
     #     csv_file_writer.writerow(['token', 'body'])
     #     for data in user_token_list:
-    #         token, body = create_order(token=data[1], buy_num=1, save_data=1, spu_id=1367086328906289154,
-    #                                    sku_id=1367086329334108161, order_source=2, coupon_auto_use=0)
-    #         new_body = str(body).replace("'", '"')
-    #         csv_file_writer.writerow([token, new_body])
+    #         token1, body = create_order(token=data[1], save_data=1, buy_num=1, sku_id=1353288833893953537,
+    #                                     order_source=1, activity_type=1, activity_id=1368102945052180481)
+    #         new_body = str(body).replace("'", '"').replace("None", 'null')
+    #         csv_file_writer.writerow([token1, new_body])
