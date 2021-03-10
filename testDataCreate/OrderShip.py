@@ -3,6 +3,7 @@
 # @Author: Waipang
 
 import common
+import random
 
 
 def order_shop_delivery(order_shop_id):
@@ -11,12 +12,17 @@ def order_shop_delivery(order_shop_id):
     :param order_shop_id: 子订单ID
     :return:
     """
+
+    # 获取商家名称
     shop_name = get_shop_name(order_shop_id=order_shop_id)
     if shop_name == 400:
         print(f'子订单({order_shop_id})没有待发货的商品')
         return
 
+    # 商家登录
     shop_token = common.shop_token(shop_name)
+
+    # 遍历未发货商品， 分别调用接口请求
     for order_goods in get_shop_order_delivers_goods(token=shop_token, order_shop_id=order_shop_id):
         body = {
             'orderDeliverRespVOS': [order_goods]
@@ -48,6 +54,7 @@ def get_shop_order_delivers_goods(token, order_shop_id):
     order_goods_list = []
     # 遍历接口返回的商品信息,依次写入order_goods_list列表中
     for goods in request['data']:
+        random_int = random.randint(1000000000, 9999999999)
         order_goods_list.append({
             'mainOrderCode': goods['mainOrderCode'],  # 主订单Id
             'shopOrderCode': goods['shopOrderCode'],  # 子订单Id
@@ -59,7 +66,7 @@ def get_shop_order_delivers_goods(token, order_shop_id):
             'deliverCount': goods['remainCount'],  # 已发货数量
             'remainCount': goods['remainCount'],  # 剩余可发货数量
             'nowDeliverCount': goods['remainCount'],  # 发货数量
-            "logisticsCode": "JD0037980871457",  # 运单编号
+            "logisticsCode": "JD00" + str(random_int),  # 运单编号
             "logisticsName": "京东",  # 快递公司
         })
 
@@ -148,10 +155,105 @@ def order_all_delivery(order_all_id):
             order_shop_delivery(order_shop_id=order_shop_id)
 
 
-if __name__ == '__main__':
+def get_order_all_id(token):
+    """
+    获取已发货订单
+    :param token: token
+    :return:
+    """
+    order_id_list = []
+    body = {
+        "currentPage": 1,
+        "pageSize": 100,  # 每页数量
+        "status": 3  # 状态 : 0.全部 ；1.待付款，2：待发货; 3.待收货；4.待评价
+    }
 
+    request = common.req.request_post(token=token, url='/store/api/order/myOrder', body=body)
+
+    for data in request['data']['records']:
+        order_all_id = data['orderCode']
+        order_id_list.append(order_all_id)
+
+    return order_id_list
+
+
+def get_logistics(token, order_all_id):
+    """
+    获取主订单下的物流单号
+    :param token: token
+    :param order_all_id: 主订单ID
+    :return:
+    """
+    body = {
+        "orderCode": order_all_id,
+        "receiving": 'true'
+    }
+    request = common.req.request_post(token=token, url='/store/api/order/getLogistics', body=body)
+
+    logistics_code_list = []
+
+    for data in request['data']:
+        logistics_code = data['logisticsCode']
+        logistics_code_list.append(logistics_code)
+
+    return logistics_code_list
+
+
+def goods_receiving(token, order_all_id=None):
+    """
+    确认收货
+    :param order_all_id:
+    :param token:
+    :return:
+    """
+    url = '/store/api/order/userReceiving'
+    if not order_all_id:
+        logistics_list = get_logistics(token=token, order_all_id=order_all_id)
+        body = {'logisticsCode': logistics_list,
+                'orderCode': order_all_id}
+        request = common.req.request_post(token=token, url=url, body=body)
+        print(f"""
+        【确认收货】({url})
+        请求
+        {body}
+
+        返回
+        {request['text']}
+        """.replace("'", '"'))
+
+    else:
+        for order_all_id in get_order_all_id(token=token):
+
+            # 确认收货
+            logistics_list = get_logistics(token=token, order_all_id=order_all_id)
+            body = {'logisticsCode': logistics_list,
+                    'orderCode': order_all_id}
+            request = common.req.request_post(token=token, url=url, body=body)
+
+            print(f"""
+            【确认收货】({url})
+            请求
+            {body}
+        
+            返回
+            {request['text']}
+            """.replace("'", '"'))
+
+
+if __name__ == '__main__':
+    pass
     # 子订单发货
     # order_shop_delivery(order_shop_id=1368501227842715650)
 
     # 主订单发货
-    order_all_delivery(order_all_id=1368487894049636354)
+    # order_all_delivery(order_all_id=1368841200169136129)
+
+    # order_all_list = []
+    #
+    # for i in order_all_list:
+    #     order_all_delivery(order_all_id=i)
+
+    user_token = common.user_token(15295993410)
+    # print(get_order_all_id(token=user_token))
+    # get_logistics(token=user_token, order_all_id=1369625196465606657)
+    goods_receiving(token=user_token, order_all_id=1369625196465606657)

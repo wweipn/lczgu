@@ -100,7 +100,7 @@ def get_goods_sku_req_vo(goods_id):
                 "linePrice": round(price * 120 / 100, 2),  # 市场价, 销售价基础+20%
                 "retailPrice": round(price * 105 / 100, 2),  # 建议零售价, 销售价基础+5%
                 "profitPrice": round(cost * 110 / 100, 2),  # 成本价, 供货价基础+10%
-                "enableQuantity": 5,  # 库存
+                "enableQuantity": 100,  # 库存
                 "name": "",  # sku名称
                 "warnQuantity": 1,  # 预警库存
                 "categoryId": category_id,
@@ -177,15 +177,16 @@ def get_goods_spu_req_vo(goods_id, goods_type=0):
     vo = {
         "specsItemRespVOList": get_specs_item_resp_vo_list(goods_id=goods_id),
         "name": name,
-        "categoryId": category_lv1_id,
-        "categoryId2": category_lv2_id,
-        "categoryId3": category_lv3_id,
-        "sn": sn_goods_id,
+        # "name": '所有地区条件包邮I类',
+        "categoryId": category_lv1_id,  # 一级分类ID
+        "categoryId2": category_lv2_id,  # 二级分类ID
+        "categoryId3": category_lv3_id,  # 三级分类ID
+        "sn": sn_goods_id,  # 老系统SPU
         "brandId": brand_id,  # 品牌ID
-        "enableQuantity": 1000,  # 库存总和
-        "warnQuantity": 10,  # 预警库存
+        "enableQuantity": len(get_goods_sku_req_vo(goods_id)) * 100,  # 库存总和
+        "warnQuantity": 20,  # 预警库存
         "transfeeCharge": 0,  # 包邮：0 不包邮：1
-        # "templateId": "1362708019229540354",  # 运费模板ID
+        # "templateId": "1362706795373576194",  # 运费模板ID
         "isSupportAfter": 1,  # 是否支持售后7天 0:否；1:是
         # "specialTitle": ",  # 特殊说明
         # "specialContent": ",  # 特殊内容
@@ -205,6 +206,13 @@ def get_goods_spu_req_vo(goods_id, goods_type=0):
 
 
 def add_goods(goods_id, token, goods_type=0):
+    """
+    添加商品
+    :param goods_id: 老库商品ID
+    :param token: 商家token
+    :param goods_type: 商品类型 0:普通商品; 1:臻宝商品; 2.VIP商品
+    :return:
+    """
     body = {
         "goodsSpuReqVO": get_goods_spu_req_vo(goods_id, goods_type),
         "goodsSkuReqVO": get_goods_sku_req_vo(goods_id)
@@ -231,7 +239,7 @@ def get_shop_goods(shop_id):
 def get_rand_goods():
 
     goods_result = old_db.select_one(sql=f"""
-        SELECT goods_id FROM es_goods order by rand() limit 1
+        SELECT goods_id FROM es_goods where goods_id = 5317 order by rand() limit 1
         """)
     goods_id = goods_result[0]
     return goods_id
@@ -283,26 +291,27 @@ def shop_create(shop_id):
     }
     create = common.req.request_post(url='/store/manage/shop', token=admin_token, body=body)
     if create['code'] == 200:
-        print(f'注册成功,账号:{shop_name}, 密码:a123456')
+        print(f'注册成功,账号:{shop_name}, 密码:123456')
         return shop_name
     else:
         print(f"注册失败,{create['text']}")
 
 
 if __name__ == '__main__':
-    # # 供应商账号注册(shop_id: 老系统供应商ID)
-    # create_shop = shop_create(shop_id='63')
+    pass
+    # 供应商账号注册(shop_id: 老系统供应商ID)
+    # create_shop = shop_create(shop_id='48')
 
     # 供应商登录
-    common.account.shop_login(username="Wepn", password='a123456')
+    common.account.shop_login(username='Wepn', password='a123456')
     shop_token = common.account.get_shop_token()
 
     # 根据老系统的商家ID添加商品
-    # goods_data = get_shop_goods(shop_id='63')
+    # goods_data = get_shop_goods(shop_id='48')
     # for data in goods_data:
-    #     add_goods(goods_id=data, shop_token=token)
-    #     time.sleep(1.5)
+    #     add_goods(goods_id=data, token=shop_token)
+    #     break
 
     # 添加任意一个商品
-    for i in range(1):
-        add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=0)
+    for i in range(15):
+        add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=1)

@@ -7,6 +7,7 @@ import time
 import csv
 from testDataCreate import Address
 from testDataCreate import UserMoney
+import random
 
 
 def pay_password_check(token):
@@ -62,8 +63,66 @@ def get_cart_list(token):
     return cart_list
 
 
-def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=None, sku_id=None,
-                 spu_id=None, activity_type=None, activity_id=None,
+def create_cart_data(token, num=1, sku_tuple=None):
+
+    condition = f'AND sku.id IN {sku_tuple}' if sku_tuple else ''
+    result = common.db.select_all(sql=f"""
+    SELECT
+        sku.id AS 'sku_id'
+    FROM
+        goods_sku sku
+        left join goods_spu spu ON spu.id = sku.goods_id
+    WHERE
+        spu.audit_status  = 1 -- 审核状态 0：待审核，1：审核通过，2：审核拒绝；
+        AND	spu.status = 3 -- '商品状态 3：上架；4：下架'
+        AND spu.type = 0 -- '商品类型 0:普通商品;1:臻宝商品;2.VIP商品'
+        AND spu.is_deleted = 0
+        {condition}
+    ORDER BY RAND()
+    LIMIT {num}
+    """)
+
+    for data in result:
+        sku_id = data[0]
+
+        body = {
+            "buyNum": random.randint(1, 10),
+            "skuId": sku_id
+        }
+
+        half_price_id, full_reduction_id = search_promotions(sku_id=sku_id)
+        if half_price_id is not None:
+            body['halfId'] = half_price_id
+        if full_reduction_id is not None:
+            body['fullReductionId'] = full_reduction_id
+
+        request = common.req.request_post(url='/store/api/order-shopping-cart',
+                                          token=token,
+                                          body=body)
+        return request['text']
+
+
+def search_promotions(sku_id):
+
+    request = common.req.request_get(url='/store/api/promotion/goods/queryPromotionGoods',
+                                     params={'skuId': sku_id})
+    half_price_id = None
+    full_reduction_id = None
+
+    for detail in request['data']:
+        try:
+            if detail['type'] == 0:
+                half_price_id = detail['id']
+            elif detail['type'] == 1:
+                full_reduction_id = detail['id']
+        except TypeError:
+            return None, None
+
+    return half_price_id, full_reduction_id
+
+
+def create_order(token, order_source, coupon_auto_use=0, province_id=None, need_pause=0, buy_num=None, sku_id=None, spu_id=None,
+                 team_id=None, activity_type=None, activity_id=None,
                  coupon_id=None, half_id=None, full_reduction_id=None,
                  share_dynamic_id=None, share_user_id=None, save_data=None):
     """
@@ -81,6 +140,7 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
     :param full_reduction_id: 满减活动ID, order_source=0, 2时选填
     :param activity_type: 0: 拼团, 1: 限时抢购
     :param activity_id: 活动ID
+    :param team_id: 拼团团队Id,参团用
     :param need_pause: 提交订单前暂停(回车继续)
     :param save_data: 是否返回提交订单所需的数据
     :return:
@@ -97,6 +157,7 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
     if order_source == 0:
         cart_list = get_cart_list(token=token)
         if not cart_list:
+            print('购物车没有商品')
             return
         else:
             body['shoppingCartDisReqVO'] = {"id": cart_list}
@@ -109,6 +170,8 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
             'activityId': activity_id,
             'remark': ''
         }
+        if team_id is not None and activity_type == 0:
+            body['settleActivityReqVO']['teamId'] = team_id
     # 立即购买
     elif order_source == 2:
         body['orderSettleBuyNowReqVO'] = {
@@ -117,12 +180,23 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
             'spuId': spu_id,
             'remark': ''
         }
-        # 判断是否有传半价ID
-        if half_id is not None:
-            body['orderSettleBuyNowReqVO']['halfId'] = half_id
-        # 判断是否有传满减ID
-        if full_reduction_id is not None:
-            body['orderSettleBuyNowReqVO']['fullReductionId'] = full_reduction_id
+        # 判断是否有传半价ID或者满减ID
+        if half_id or full_reduction_id is not None:
+            # 判断是否有传半价ID
+            if half_id is not None:
+                body['orderSettleBuyNowReqVO']['halfId'] = half_id
+            # 判断是否有传满减ID
+            if full_reduction_id is not None:
+                body['orderSettleBuyNowReqVO']['fullReductionId'] = full_reduction_id
+
+        # 如果半价ID和满减ID都没有传的话,自动获取优惠
+        else:
+            half_id, full_reduction_id = search_promotions(sku_id=sku_id)
+            if half_id is not None:
+                body['orderSettleBuyNowReqVO']['halfId'] = half_id
+            if full_reduction_id is not None:
+                body['orderSettleBuyNowReqVO']['fullReductionId'] = full_reduction_id
+
         # 判断是否有传动态分享人ID
         if share_dynamic_id is not None:
             body['orderSettleBuyNowReqVO']['shareDynamicId'] = share_dynamic_id
@@ -146,18 +220,13 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
     addr_id, province_id = get_default_addr(token)
     body['provinceId'] = province_id
 
+    # 多出来的配置
+    # body['provinceId'] = province_id
+
     # 获取订单结算信息
     discounts_info = common.req.request_post(url='/store/api/order/getSettleDiscountsInfo',
                                              body=body,
                                              token=token)
-    print(f"""
-    【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
-    请求信息
-    {body}
-
-    返回信息
-    {discounts_info['text']}
-    """.replace("'", '"').replace('None', 'null'))
 
     # 获取商品结算信息
     goods_info = common.req.request_post(url='/store/api/order/getSettleGoodsInfo',
@@ -186,6 +255,28 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
             'cartList': cart_list
         }
 
+    try:
+        print(f"""
+        【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
+        请求信息
+        {body}
+
+        返回信息
+        {discounts_info['text']}
+
+        =======价格信息=======
+        商品合计: {discounts_info['data']['goodsTotal']}
+        折扣优惠: {discounts_info['data']['totalDis']}
+        活动余额抵扣: {discounts_info['data']['activityAccount']}
+        运费: {discounts_info['data']['freight']}
+        臻宝兑换: {discounts_info['data']['zbs']}
+        合计: {discounts_info['data']['allTotal']}
+        =====================
+        """.replace("'", '"').replace('None', 'null'))
+    except TypeError:
+        print('取值错误')
+        return
+
     # 在提交参数中删除省份ID,并添加收货地址
     del body['provinceId']
     body['userAddressId'] = addr_id
@@ -199,7 +290,6 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
 
     # 判断是否需要在提交订单之前中止
     if need_pause == 1:
-        print(str(body).replace("'", '"'))
         a = int(input('1:继续提交订单\n'))
         if a == 1:
             pass
@@ -304,7 +394,6 @@ def order_pay(price, order_id, token):
     响应：
     {pay['text']}
     """)
-    # time.sleep(0.5)
 
 
 if __name__ == '__main__':
@@ -313,27 +402,30 @@ if __name__ == '__main__':
     user_token = common.user_token(mobile=18123929299)
 
     for i in range(1):
-        print(f'====================第{i + 1}次执行开始=======================')
+        # print(f'====================第{i + 1}次执行开始=======================')
 
         # 立即购买(普通/臻宝/VIP商品订单)
-        # create_order(token=user_token, buy_num=1, sku_id=1366289834708074498, spu_id=1366289834699685889,
-        #              order_source=2, coupon_auto_use=1, need_pause=1)
+        # create_order(token=user_token, buy_num=2, order_source=2, coupon_auto_use=0, need_pause=1,
+        #              sku_id=1353289198852927490, spu_id=1353289198580297729, full_reduction_id=1369595541582893058)
 
         # 创建随机批量订单
-        # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
+        # batch_order_rand_create(token=user_token, num=30)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_order(token=user_token, buy_num=1, sku_id=1353289208831176706,
-        #              order_source=1, activity_type=0, activity_id=1368103269305434114, need_pause=0)
+        # create_order(token=user_token, buy_num=1, order_source=1, activity_type=0,
+        #              sku_id=1353289369867284481, activity_id=1368406095822966786, team_id=1368921145809575938)
 
         # 创建限时抢购订单
-        # create_order(token=user_token, buy_num=1, sku_id=1352097292064174082,
-        #              order_source=1, activity_type=1, activity_id=1368102945052180481)
+        create_order(token=user_token, buy_num=1, order_source=1, activity_type=1, need_pause=0,
+                     sku_id=1352081474412654594, activity_id=1369628045639495682)
 
         # 购物车商品创建订单
-        create_order(token=user_token, order_source=0, need_pause=0)
+        # 生成购物车数据
+        # create_cart_data(token=user_token, num=1, sku_tuple='(1353289198852927490)')
 
-        print(f'====================第{i + 1}次执行结束=======================')
+        # create_order(token=user_token, order_source=0, need_pause=1)
+
+        # print(f'====================第{i + 1}次执行结束=======================')
         pass
 
     #   多账号创建订单
@@ -346,7 +438,7 @@ if __name__ == '__main__':
     #   登录多个用户账号,并获取token
     # common.account.user_login(source=1)
     # user_token_list = common.account.get_user_token()
-    #
+
     # file = common.get_file_path('stress_testing.csv', 'test_file')
     # with open(file, 'w', newline='', encoding='utf-8') as StressTest:
     #     csv_file_writer = csv.writer(StressTest)
@@ -356,3 +448,6 @@ if __name__ == '__main__':
     #                                     order_source=1, activity_type=1, activity_id=1368102945052180481)
     #         new_body = str(body).replace("'", '"').replace("None", 'null')
     #         csv_file_writer.writerow([token1, new_body])
+
+
+
