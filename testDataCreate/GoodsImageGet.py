@@ -10,7 +10,7 @@ import time
 
 # 连接老系统数据库
 old_db = common.Database()
-old_db.database = Config.get_db(env='old_test')
+old_db.database = Config.get_db(env='old_test_goods')
 
 # 获取上一级路径(也就是该项目的根目录), 比如: D:\PythonProject\Lczgu
 GoodsImagePath = r'D:\GoodsImage'

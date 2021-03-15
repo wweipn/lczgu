@@ -13,6 +13,7 @@ def get_ran_address_info():
         province_list = common.req.request_get('/store/common/area/list/0')
         province = random.choice(province_list['text']['data'])
         province_id = province['id']
+        province_id = 630000
         if province_id not in (810000, 820000, 710000, 460000):
             break
 

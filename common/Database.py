@@ -20,6 +20,7 @@ class Database:
             password='Wuweipeng997',
             database=self.database,
             charset='utf8')
+
         self.cursor = self.conn.cursor()
 
     def select_one(self, sql):

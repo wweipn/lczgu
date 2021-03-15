@@ -23,22 +23,25 @@ class ApiRequests:
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
-        else:
-            pass
+
         headers['platform'] = 'ios'
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
-        result = {
-            'text': res.json(),
-            'status_code': res.status_code,
-            'code': res.json()['code'],
-            'desc': res.json()['desc'],
-            'data': res.json()['data'],
-            'url': res.url,
-            'req_header': res.request.headers,
-            'rep_header': res.headers,
-            'body': res.request.body
-        }
-        return result
+        try:
+            result = {
+                'text': res.json(),
+                'status_code': res.status_code,
+                'code': res.json()['code'],
+                'desc': res.json()['desc'],
+                'data': res.json()['data'],
+                'url': res.url,
+                'req_header': res.request.headers,
+                'rep_header': res.headers,
+                'body': res.request.body
+            }
+            return result
+        except KeyError:
+            print(res.json())
+
 
     def request_put(self, url, token=None, params=None, body=None, data=None, **kwargs):
         """
@@ -54,8 +57,7 @@ class ApiRequests:
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
-        else:
-            pass
+
         headers['platform'] = 'ios'
         res = requests.put(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
@@ -85,8 +87,7 @@ class ApiRequests:
         headers = {**kwargs}
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
-        else:
-            pass
+
         headers['platform'] = 'ios'
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {

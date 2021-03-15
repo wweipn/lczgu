@@ -3,10 +3,8 @@
 # @Author: Waipang
 
 import common
-import time
-import csv
 from testDataCreate import Address
-from testDataCreate import UserMoney
+from datetime import datetime
 import random
 
 
@@ -63,9 +61,8 @@ def get_cart_list(token):
     return cart_list
 
 
-def create_cart_data(token, num=1, sku_tuple=None):
-
-    condition = f'AND sku.id IN {sku_tuple}' if sku_tuple else ''
+def create_cart_data(token, num=10, buy_num=1, sku_tuple=None):
+    condition = f'AND sku.id IN {sku_tuple}' if sku_tuple is not None else sku_tuple
     result = common.db.select_all(sql=f"""
     SELECT
         sku.id AS 'sku_id'
@@ -86,7 +83,7 @@ def create_cart_data(token, num=1, sku_tuple=None):
         sku_id = data[0]
 
         body = {
-            "buyNum": random.randint(1, 10),
+            "buyNum": buy_num,
             "skuId": sku_id
         }
 
@@ -96,14 +93,12 @@ def create_cart_data(token, num=1, sku_tuple=None):
         if full_reduction_id is not None:
             body['fullReductionId'] = full_reduction_id
 
-        request = common.req.request_post(url='/store/api/order-shopping-cart',
-                                          token=token,
-                                          body=body)
-        return request['text']
+        common.req.request_post(url='/store/api/order-shopping-cart',
+                                token=token,
+                                body=body)
 
 
 def search_promotions(sku_id):
-
     request = common.req.request_get(url='/store/api/promotion/goods/queryPromotionGoods',
                                      params={'skuId': sku_id})
     half_price_id = None
@@ -121,7 +116,7 @@ def search_promotions(sku_id):
     return half_price_id, full_reduction_id
 
 
-def create_order(token, order_source, coupon_auto_use=0, province_id=None, need_pause=0, buy_num=None, sku_id=None, spu_id=None,
+def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=None, sku_id=None, spu_id=None,
                  team_id=None, activity_type=None, activity_id=None,
                  coupon_id=None, half_id=None, full_reduction_id=None,
                  share_dynamic_id=None, share_user_id=None, save_data=None):
@@ -256,26 +251,44 @@ def create_order(token, order_source, coupon_auto_use=0, province_id=None, need_
         }
 
     try:
+        goods_total = discounts_info['data']['goodsTotal']  # 商品合计
+        total_dis = discounts_info['data']['totalDis'] if discounts_info['data']['totalDis'] is not None else 0  # 优惠合计
+        activity_red = discounts_info['data']['activityAccount']  # 活动余额抵扣
+        coupon_red = discounts_info['data']['coupon'] if discounts_info['data']['coupon'] is not None else 0  # 优惠券抵扣
+        coupon_id = discounts_info['data']['couponId']  # 优惠券ID
+        freight = discounts_info['data']['freight']  # 运费
+        zbs = discounts_info['data']['zbs'] if discounts_info['data']['zbs'] is not None else 0  # 臻宝抵扣
+        total = discounts_info['data']['allTotal']  # 合计
+        result = round((goods_total + freight) - total_dis - activity_red - coupon_red, 2)  # 计算出来的金额
         print(f"""
-        【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
-        请求信息
-        {body}
+    【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
+    请求信息
+    {body}
 
-        返回信息
-        {discounts_info['text']}
+    返回信息
+    {discounts_info['text']}
 
-        =======价格信息=======
-        商品合计: {discounts_info['data']['goodsTotal']}
-        折扣优惠: {discounts_info['data']['totalDis']}
-        活动余额抵扣: {discounts_info['data']['activityAccount']}
-        运费: {discounts_info['data']['freight']}
-        臻宝兑换: {discounts_info['data']['zbs']}
-        合计: {discounts_info['data']['allTotal']}
-        =====================
-        """.replace("'", '"').replace('None', 'null'))
+    =======价格信息=======
+    商品合计: {goods_total}
+    折扣优惠: {total_dis}
+    活动余额抵扣: {activity_red}
+    优惠券减免金额: {coupon_red}
+    优惠券ID: {coupon_id}
+    运费: {freight}
+    臻宝兑换: {zbs}
+    合计: {total}(计算结果:{result})
+    =====================
+            """.replace("'", '"').replace('None', 'null'))
     except TypeError:
-        print('取值错误')
-        return
+        print(f"""
+    【获取订单结算信息】(/store/api/order/getSettleDiscountsInfo)
+    请求信息
+    {body}
+
+    返回信息
+    {discounts_info['text']}
+        =====================
+            """.replace("'", '"').replace('None', 'null'))
 
     # 在提交参数中删除省份ID,并添加收货地址
     del body['provinceId']
@@ -369,7 +382,7 @@ def batch_order_rand_create(token, num):
         print(f'===========================第{a}次创建订单===========================')
         sku_id = result[0]
         spu_id = result[1]
-        create_order(token=token, buy_num=1, spu_id=spu_id, sku_id=sku_id, coupon_auto_use=1, order_source=2)
+        create_order(token=token, buy_num=3, spu_id=spu_id, sku_id=sku_id, coupon_auto_use=1, order_source=2)
         a += 1
         print(f'===================================================================')
 
@@ -396,34 +409,204 @@ def order_pay(price, order_id, token):
     """)
 
 
+def get_ran_goods(goods_type):
+    """
+    随机获取一个商品
+    :param goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
+    :return:
+    """
+    result = common.db.select_one(sql=f"""
+    SELECT
+        sku.id AS 'skuId',
+        spu.id AS 'spuId'
+    FROM
+        goods_sku sku
+        LEFT JOIN goods_spu spu ON spu.id = sku.goods_id 
+    WHERE	
+        spu.audit_status = 1 -- 审核状态 0：待审核，1：审核通过，2：审核拒绝；
+        AND spu.STATUS = 3 -- '商品状态 3：上架；4：下架'
+        AND spu.type = {goods_type} -- '商品类型 0:普通商品;1:臻宝商品;2.VIP商品'
+        AND spu.is_deleted = 0 -- 非逻辑删除状态
+    ORDER BY rand( ) -- 随机排序
+    LIMIT 1
+    """)
+
+    skuId = result[0]
+    spuId = result[1]
+    return skuId, spuId
+
+
+def get_assemble_sku():
+    url = '/store/api/promotion/pintuan/queryAppPintuan'
+    date = datetime.now().strftime('%Y-%m-%d')
+    params = {
+        'startTime': date,
+        'currentPage': 1,
+        'pageSize': 30
+    }
+
+    # 获取今天的拼团商品列表
+    request = common.req.request_get(url=url, params=params)
+
+    if len(request['data']['data']) == 0:
+        print('拼团商品列表为空')
+        return
+
+    else:
+        # 随机获取列表中其中一个拼团商品
+        ran_int = random.randint(0, int(len(request['data']['data'])))
+
+        # 取出其中一个拼团商品的skuId和活动Id
+        skuId = int(request['data']['data'][ran_int]['skuId'])
+        ActivityId = int(request['data']['data'][ran_int]['pintuanId'])
+        return skuId, ActivityId
+
+
+def get_promotion_time_line():
+    """
+    获取进行中限时抢购活动的日期和时间段
+    :return:
+    """
+
+    url = '/store/api/promotion/time-limit/time-line'
+    request = common.req.request_post(url=url)
+
+    # 取出最前面的活动,判断状态是否为进行中
+    try:
+        status = request['data'][0]['status']
+        if status == 2:
+            start_time = request['data'][0]['startTime'][-8:]
+            endTime = request['data'][0]['endTime'][-8:]
+            date = datetime.now().strftime('%Y-%m-%d')
+            time_line = f'{start_time}-{endTime}'
+            return date, time_line
+    except IndexError:
+        return 400
+
+
+def get_promotion_sku():
+    """
+    获取限时抢购SKU
+    :return:
+    """
+
+    url = '/store/api/promotion/pintuan/queryAppPintuan'
+
+    if get_promotion_time_line() != 400:
+        date, time_line = get_promotion_time_line()
+        params = {
+            'startTime': date,
+            'timeLine': time_line,
+            'currentPage': 1,
+            'pageSize': 30
+        }
+
+        # 获取最新的限时抢购商品列表
+        request = common.req.request_get(url=url, params=params)
+
+        # 随机获取列表中其中一个限时抢购商品
+        ran_int = random.randint(0, int(len(request['data']['data'])))
+
+        # 取出其中一个限时抢购商品的skuId和活动Id
+        skuId = int(request['data']['data'][ran_int]['skuId'])
+        ActivityId = int(request['data']['data'][ran_int]['seckillId'])
+        return skuId, ActivityId
+    else:
+        return
+
+
+def create_promotion_order(token, buy_num, need_pause=0, sku_id=None, activity_id=None):
+    """
+    创建限时抢购活动订单
+    :param token:
+    :param buy_num: 购买数量
+    :param need_pause: 是否暂停
+    :param sku_id: 规格ID
+    :param activity_id: 活动ID
+    :return:
+    """
+    if sku_id is None and activity_id is None:
+        try:
+            sku_id, activity_id = get_promotion_sku()
+        except TypeError:
+            print('没有进行中的限时抢购活动')
+
+    create_order(token=token, buy_num=buy_num, order_source=1, activity_type=1, need_pause=need_pause,
+                 sku_id=sku_id, activity_id=activity_id)
+
+
+def create_assemble_order(token, buy_num, need_pause=0, sku_id=None, activity_id=None, team_id=None):
+    """
+    创建拼团活动订单
+    :param token: token
+    :param buy_num: 购买数量
+    :param need_pause: 是否暂停
+    :param sku_id: 规格ID
+    :param activity_id: 活动ID
+    :param team_id: 团队ID
+    :return:
+    """
+
+    if sku_id is None and activity_id is None:
+        try:
+            sku_id, activity_id = get_assemble_sku()
+        except TypeError:
+            print('没有进行中的拼团活动')
+
+    create_order(token=token, buy_num=buy_num, order_source=1, activity_type=0, need_pause=need_pause, team_id=team_id,
+                 sku_id=sku_id, activity_id=activity_id)
+
+
+def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, sku_id=None, spu_id=None):
+    """
+    创建立即购买订单
+    :param goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
+    :param buy_num: 购买数量
+    :param spu_id: 规格ID
+    :param sku_id: 商品ID
+    :param need_pause: 是否暂停
+    :param coupon_auto_use: 自动使用优惠券
+    :return:
+    """
+
+    if sku_id is None and spu_id is None:
+        sku_id, spu_id = get_ran_goods(goods_type=goods_type)
+
+    create_order(token=user_token, buy_num=buy_num, order_source=2, coupon_auto_use=coupon_auto_use,
+                 sku_id=sku_id, spu_id=spu_id, need_pause=need_pause)
+
+
 if __name__ == '__main__':
 
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=18123929299)
+    user_token = common.user_token(mobile=19216850034)
+
+    # 随机获取商品
+    # goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
+    # sku_id, spu_id = get_ran_goods(goods_type=0)
 
     for i in range(1):
         # print(f'====================第{i + 1}次执行开始=======================')
 
         # 立即购买(普通/臻宝/VIP商品订单)
-        # create_order(token=user_token, buy_num=2, order_source=2, coupon_auto_use=0, need_pause=1,
-        #              sku_id=1353289198852927490, spu_id=1353289198580297729, full_reduction_id=1369595541582893058)
+        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=0, need_pause=0,
+                             sku_id=None, spu_id=None)
 
         # 创建随机批量订单
-        # batch_order_rand_create(token=user_token, num=30)  # 创建单商品订单
+        # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_order(token=user_token, buy_num=1, order_source=1, activity_type=0,
-        #              sku_id=1353289369867284481, activity_id=1368406095822966786, team_id=1368921145809575938)
+        # create_assemble_order(token=user_token, buy_num=1, need_pause=1, sku_id=None,
+        #                       activity_id=None, team_id=None)
 
         # 创建限时抢购订单
-        create_order(token=user_token, buy_num=1, order_source=1, activity_type=1, need_pause=0,
-                     sku_id=1352081474412654594, activity_id=1369628045639495682)
+        # create_promotion_order(token=user_token, buy_num=1, need_pause=0, sku_id=None, activity_id=None)
 
-        # 购物车商品创建订单
         # 生成购物车数据
-        # create_cart_data(token=user_token, num=1, sku_tuple='(1353289198852927490)')
-
-        # create_order(token=user_token, order_source=0, need_pause=1)
+        # sku_tuple = '(1353289268612591618,1369578164304515073,1353289198915842049)'
+        # create_cart_data(token=user_token, num=10, buy_num=2, sku_tuple=sku_tuple)
+        # 购物车商品创建订单
+        # create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
 
         # print(f'====================第{i + 1}次执行结束=======================')
         pass
@@ -448,6 +631,3 @@ if __name__ == '__main__':
     #                                     order_source=1, activity_type=1, activity_id=1368102945052180481)
     #         new_body = str(body).replace("'", '"').replace("None", 'null')
     #         csv_file_writer.writerow([token1, new_body])
-
-
-

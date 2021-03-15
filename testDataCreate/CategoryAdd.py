@@ -8,7 +8,7 @@ import Config
 
 # 连接老系统数据库
 old_db = common.Database()
-old_db.database = Config.get_db(env='old_test')
+old_db.database = Config.get_db(env='old_release_goods')
 
 
 def add_category():
@@ -19,7 +19,7 @@ def add_category():
     # 查询老系统的一级分类
     lv1_category_result = old_db.select_all(sql="""
     SELECT 
-        name 
+        name, is_show
     FROM 
         es_category 
     WHERE 
@@ -29,13 +29,15 @@ def add_category():
     # 遍历老系统一级分类并添加一级分类
     for lv1_category in lv1_category_result:
         lv1_category_name = lv1_category[0]
+        is_show = lv1_category[1]
         body = {
-            "isShow": 1,
+            "isShow": 1 if is_show == 'YES' else 0,
             "level": 1,
             "name": lv1_category_name,
             "sort": 1
         }
         add_lv1_category = common.req.request_post(url='/store/manage/category/save', token=admin_token, body=body)
+        common.api_print(url='/store/manage/category/save', name='添加一级分类', data=body, result=add_lv1_category)
 
     # 查询新系统的一级分类
     new_sys_lv1_category_result = common.db.select_all(sql="""
@@ -52,13 +54,13 @@ def add_category():
     for new_sys_lv1_category in new_sys_lv1_category_result:
         lv1_category_id = new_sys_lv1_category[0]
         lv1_category_name = new_sys_lv1_category[1]
-        # print(lv1_category_id, lv1_category_name)
 
         # 查询老系统二级分类
         second_category_result = old_db.select_all(sql=f"""
         SELECT
             name,
-            image
+            image,
+            is_show
         FROM
             es_category
         WHERE
@@ -69,16 +71,17 @@ def add_category():
         for lv2_category in second_category_result:
             lv2_category_name = lv2_category[0]
             lv2_category_image_url = lv2_category[1]
-            print({"parentId": lv1_category_id, "name": lv2_category_name, "logo": lv2_category_image_url})
+            is_show = lv2_category[2]
             body = {
-                "isShow": 1,
+                "isShow": 1 if is_show == 'YES' else 0,
                 "level": 2,
                 "logo": lv2_category_image_url,
                 "name": lv2_category_name,
                 "parentId": lv1_category_id,
                 "sort": 1
             }
-            add_lv2_category = common.req.request_post('/store/manage/category/save', token=admin_token, body=body)
+            add_lv2_category = common.req.request_post(url='/store/manage/category/save', token=admin_token, body=body)
+            common.api_print(name='添加二级分类', url='/store/manage/category/save', data=body, result=add_lv2_category)
             time.sleep(0.2)
         print(f'【{lv1_category_name}】二级分类添加完成')
 
@@ -90,8 +93,6 @@ def add_category():
         goods_category 
     WHERE
         level = 2
-    AND
-        create_time >= "2021-01-19 17:48:00"
     """)
 
     count = 0
@@ -100,11 +101,12 @@ def add_category():
         new_lv2_category_id = new_sys_category[0]
         new_lv2_category_name = new_sys_category[1]
 
-        # 查询该二级分类在老系统三级分类
+        # 查询该二级分类在老系统的三级分类
         lv3_category_result = old_db.select_all(sql=f"""
         SELECT
             name,
-            image
+            image,
+            is_show
         FROM
             es_category
         WHERE
@@ -115,8 +117,9 @@ def add_category():
         for lv3_category in lv3_category_result:
             lv3_category_name = lv3_category[0]
             lv3_category_image_url = lv3_category[1]
+            is_show = lv3_category[2]
             body = {
-                "isShow": 1,
+                "isShow": 1 if is_show == 'YES' else 0,
                 "level": 3,
                 "logo": lv3_category_image_url,
                 "name": lv3_category_name,
@@ -124,6 +127,7 @@ def add_category():
                 "sort": 1
             }
             add_lv3_category = common.req.request_post('/store/manage/category/save', token=admin_token, body=body)
+            common.api_print(name='添加三级分类', url='/store/manage/category/save', data=body, result=add_lv3_category)
             count += 1
             time.sleep(0.3)
             print(f'第【{count}】条数据添加成功')
@@ -172,4 +176,4 @@ def get_category_dic():
 
 
 if __name__ == '__main__':
-    print(get_category_dic())
+    add_category()

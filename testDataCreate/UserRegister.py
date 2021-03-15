@@ -19,11 +19,12 @@ def user_register(count=1, r_mobile=None):
 
 
 if __name__ == '__main__':
+    pass
     # 推荐人注册
     # user_register(r_mobile=19216850063, count=20)
 
     # 无推荐人注册
-    user_register(count=34)
+    # user_register(count=1)
 
 
 

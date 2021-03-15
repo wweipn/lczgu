@@ -22,6 +22,27 @@ def user_token(mobile):
 
 
 def shop_token(shop_name):
-    account.shop_login(username=shop_name, password='a123456')
+    account.shop_login(username=shop_name, password='123456')
     token = account.get_shop_token()
     return token
+
+
+def api_print(name, url, result, data=None):
+    """
+    打印接口调用信息
+    :param name: 接口名
+    :param url: 接口路径
+    :param data: 请求参数
+    :param result: 响应信息
+    :return:
+    """
+
+    print(f"""
+    【{name}】({url})
+    请求参数
+    {data}
+
+    返回结果
+    {result['text']}
+
+    """.replace("'", '"'))

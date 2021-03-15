@@ -8,11 +8,7 @@ import Config
 
 # 连接老系统数据库
 old_db = common.Database()
-old_db.database = Config.get_db(env='old_test')
-
-# 系统后台登录并获取token
-admin_login = common.account.admin_login()
-admin_token = common.account.get_admin_token()
+old_db.database = Config.get_db(env='old_release_goods')
 
 
 def add_brand():
@@ -20,29 +16,37 @@ def add_brand():
     从老系统获取品牌数据后添加到新系统
     :return:
     """
+
     # 查询老系统品牌表
     result = old_db.select_all(sql="""
         SELECT 
             name, logo  
         FROM 
-            es_brand  
-        group by name
+            es_brand
     """)
+
+    # 系统后台登录并获取token
+    admin_token = common.admin_token()
+    url = '/store/manage/goodsBrand/save'
 
     # 遍历老系统品牌表查询结果,调用添加品牌结果添加数据
     for brand in result:
         name = brand[0]
-        logo = brand[1] if brand[1] != '' else 'logo_url'
+        logo = brand[1] if brand[1] != '' else 'url'
         body = {
             'name': name,
             'logo': logo
         }
-        add = common.req.request_post('/store/manage/goodsBrand/save', body=body, token=admin_token)
-        if add['code'] == 200:
-            print(f'品牌{name}添加成功')
-        else:
-            print(f'品牌{name}添加失败, {add["text"]}')
-        time.sleep(0.3)
+        add = common.req.request_post(url=url, body=body, token=admin_token)
+        print(f"""
+        【添加品牌】
+        请求
+        {body}
+        
+        返回
+        {add['text']}
+        """)
+        time.sleep(0.1)
 
 
 def get_brand_id_dic():
@@ -91,4 +95,5 @@ def get_brand_id_dic():
 
 
 if __name__ == '__main__':
-    print(get_brand_id_dic())
+    add_brand()
+    # print(get_brand_id_dic())
