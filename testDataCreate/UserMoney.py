@@ -55,7 +55,7 @@ if __name__ == '__main__':
     # 修改用户可提现余额/臻宝/活动余额
     # money_type: 类型 0:可提现余额, 1:活动余额, 2:臻宝
     # update_type: 修改类型 1:扣除, 2:添加
-    update_user_money(token=admin_token, mobile=19216850035, money_type=1, update_type=2, money=20.1)
+    update_user_money(token=admin_token, mobile=13113103424, money_type=2, update_type=2, money=999999)
 
     # user_list = [17199990013, 17199990015, 17199990016, 17199990021, 17199990044, 17199990046, 17199990048,
     # 17199990050, 17199990052, 17199990056, 17199990058, 17199990060, 17199990062, 17199990064, 17199990073,

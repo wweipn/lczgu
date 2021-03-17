@@ -225,10 +225,10 @@ def evaluate_review():
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    # user_token = common.user_token(mobile=19216850028)
+    user_token = common.user_token(mobile=18123929299)
 
     # 添加评论/追评(add_type 1: 评价, 3: 追评 )
-    # add_evaluate(token=user_token, add_type=3)
+    # add_evaluate(token=user_token, add_type=1)
 
     # 获取图片
     # print(content_get())

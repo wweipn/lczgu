@@ -490,29 +490,26 @@ def get_promotion_sku():
     :return:
     """
 
-    url = '/store/api/promotion/pintuan/queryAppPintuan'
+    url = '/store/api/promotion/time-limit/queryAppTimeLimit'
 
-    if get_promotion_time_line() != 400:
-        date, time_line = get_promotion_time_line()
-        params = {
-            'startTime': date,
-            'timeLine': time_line,
-            'currentPage': 1,
-            'pageSize': 30
-        }
+    date, time_line = get_promotion_time_line()
+    params = {
+        'startTime': date,
+        'timeLine': time_line,
+        'currentPage': 1,
+        'pageSize': 30
+    }
 
-        # 获取最新的限时抢购商品列表
-        request = common.req.request_get(url=url, params=params)
+    # 获取最新的限时抢购商品列表
+    request = common.req.request_get(url=url, params=params)
 
-        # 随机获取列表中其中一个限时抢购商品
-        ran_int = random.randint(0, int(len(request['data']['data'])))
+    # 随机获取列表中其中一个限时抢购商品
+    ran_int = random.randint(1, int(len(request['data']['data'])))
 
-        # 取出其中一个限时抢购商品的skuId和活动Id
-        skuId = int(request['data']['data'][ran_int]['skuId'])
-        ActivityId = int(request['data']['data'][ran_int]['seckillId'])
-        return skuId, ActivityId
-    else:
-        return
+    # 取出其中一个限时抢购商品的skuId和活动Id
+    skuId = request['data']['data'][ran_int]['skuId']
+    ActivityId = request['data']['data'][ran_int]['seckillId']
+    return skuId, ActivityId
 
 
 def create_promotion_order(token, buy_num, need_pause=0, sku_id=None, activity_id=None):
@@ -579,32 +576,32 @@ def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, s
 if __name__ == '__main__':
 
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=19216850034)
+    user_token = common.user_token(mobile=18123929299)
 
     # 随机获取商品
     # goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
     # sku_id, spu_id = get_ran_goods(goods_type=0)
 
-    for i in range(1):
+    for i in range(15):
         # print(f'====================第{i + 1}次执行开始=======================')
 
         # 立即购买(普通/臻宝/VIP商品订单)
-        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=0, need_pause=0,
-                             sku_id=None, spu_id=None)
+        # create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=0,
+        #                      sku_id=1370619491603464193, spu_id=1370619491595075586)
 
         # 创建随机批量订单
         # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_assemble_order(token=user_token, buy_num=1, need_pause=1, sku_id=None,
-        #                       activity_id=None, team_id=None)
+        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=1353288943805689858,
+        #                       activity_id=1371654928526749698, team_id=1371809218402750465)
 
         # 创建限时抢购订单
         # create_promotion_order(token=user_token, buy_num=1, need_pause=0, sku_id=None, activity_id=None)
 
         # 生成购物车数据
-        # sku_tuple = '(1353289268612591618,1369578164304515073,1353289198915842049)'
-        # create_cart_data(token=user_token, num=10, buy_num=2, sku_tuple=sku_tuple)
+        # sku_tuple = '(1370618445376274434)'
+        # create_cart_data(token=user_token, num=1, buy_num=2, sku_tuple=sku_tuple)
         # 购物车商品创建订单
         # create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
 

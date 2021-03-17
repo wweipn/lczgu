@@ -5,6 +5,7 @@
 import common
 from datetime import datetime, timedelta
 import time
+import random
 
 
 def admin_token():
@@ -78,7 +79,7 @@ def get_activity_goods(sql_limit=0, num=10, activity_type=1, activity_num=5, lim
         AND spu.type = 0 
         AND sku.is_deleted = 0
         AND sku.price > 0
-        # AND sku.id in (1353289268612591618,1369578164304515073,1353289198915842049)
+        -- AND sku.id in (1351823033597259778,1351823033723088898,1351823033513373698,1351823033672757250)
         ORDER BY RAND() 
         LIMIT {num}"""
 
@@ -234,9 +235,11 @@ def flash_sale(time_line, sql_limit=0, goods_type=1, days=0, goods_num=10):
     """)
 
 
-def assemble(sql_limit=0, goods_type=1, day=0, goods_num=10):
+def assemble(sql_limit=0, goods_type=1, day=0, add_num=None, goods_num=10, chief_type=0):
     """
     创建拼团活动
+    :param add_num: 几人团
+    :param chief_type: 是否团长免单
     :param sql_limit: sql查询偏移量(创建商品详情页数据时才有用)
     :param goods_type: 商品数据类型: 0: 验证商品详情数据 1: 常规
     :param day: 开始日期, 今天传0, 明天传1, 以此类推
@@ -247,13 +250,14 @@ def assemble(sql_limit=0, goods_type=1, day=0, goods_num=10):
     now = datetime.now()
     goods_list = get_activity_goods(activity_type=3, num=goods_num, sql_limit=sql_limit, goods_type=goods_type)
     start_date = str((now + timedelta(days=day)).date())
-
-    name = f"拼团活动({start_date})"
+    if add_num is None:
+        add_num = random.randint(2, 5)
+    name = f"拼团({start_date})"
 
     body = {
-        "addNum": 2,  # 参团人数
+        "addNum": add_num,  # 参团人数
         "limitNum": 10,  # 限购数量
-        "chiefType": 0,  # 团长免单: 0: 关闭, 1: 开启
+        "chiefType": chief_type,  # 团长免单: 0: 关闭, 1: 开启
         "teamType": 0,  # 虚拟成团: 0: 关闭, 1: 开启
         "startDate": start_date,  # 开始时间
         "name": name,  # 活动名称
@@ -261,24 +265,12 @@ def assemble(sql_limit=0, goods_type=1, day=0, goods_num=10):
         "goodsList": goods_list  # 商品列表
     }
 
-    request = common.req.request_post(url='/store/manage/promotion/pintuan/savePintuan',
+    url = '/store/manage/promotion/pintuan/savePintuan'
+    request = common.req.request_post(url=url,
                                       body=body,
                                       token=admin_token())
-    if request['code'] != 200:
-        fail_goods_list = []
-        for i in body["goodsList"]:
-            sku_id = i['skuId']
-            fail_goods_list.append(sku_id)
 
-        print(f"""添加失败
-        sku列表: {fail_goods_list}""".replace("'", '"'))
-
-    print(f"""请求参数
-    {body}
-
-    返回参数
-    {request['text']}
-    """.replace("'", '"'))
+    common.api_print(name='创建拼团活动', url=url, data=body, result=request)
 
 
 def goods_detail_activity():
@@ -311,11 +303,11 @@ def goods_detail_activity():
 
 if __name__ == '__main__':
     pass
-    # half_price_activity(goods_num=10)  # 第二件半价活动创建
+    half_price_activity(goods_num=10)  # 第二件半价活动创建
     # full_discount(goods_num=10)  # 满减活动创建
-    # assemble(day=0, goods_num=30)  # 拼团活动创建
-    # assemble(day=2, goods_num=30)  # 拼团活动创建
+    # assemble(day=0, goods_num=15, chief_type=0)  # 拼团活动创建
+    # assemble(day=1, goods_num=15, chief_type=0)  # 拼团活动创建
     # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=30)  # 限时抢购活动创建
+    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=8)  # 限时抢购活动创建
+    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=5)  # 限时抢购活动创建
     # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建

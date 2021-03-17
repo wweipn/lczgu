@@ -81,7 +81,7 @@ def get_goods_sku_req_vo(goods_id):
     # 查询商品的sku信息
     result = old_db.select_all(f"""
     SELECT
-        specs,price,thumbnail,sn,cost,category_id,enable_quantity
+        specs,price,thumbnail,sn,cost,category_id,enable_quantity, sku_id, goods_id
     FROM
         es_goods_sku
     WHERE
@@ -97,6 +97,8 @@ def get_goods_sku_req_vo(goods_id):
         cost = float(sku[4])
         category_id = category_dic[sku[5]]
         enable_quantity = int(sku[6])
+        sku_id = sku[7]
+        spu_id = sku[8]
 
         # 往商品sku信息中插入数据
         goods_sku_req_vo.append(
@@ -115,7 +117,9 @@ def get_goods_sku_req_vo(goods_id):
                 "categoryId": category_id,
                 "sn": sn,
                 "thumbnail": thumbnail,
-                "goodsSpecificationReqVO": []
+                "goodsSpecificationReqVO": [],
+                "oldSku": sku_id,
+                "oldSpu": spu_id
             }
         )
 
@@ -222,9 +226,10 @@ def get_goods_spu_req_vo(goods_id, goods_type=0):
     return vo
 
 
-def new_get_goods_spu_req_vo(goods_id):
+def new_get_goods_spu_req_vo(goods_id, goods_type=None):
     """
     生成保存商品接口中商品VO的数据(数据迁移用)
+    :param goods_type: 商品类型, 如果没有传的话取老系统的类型
     :param goods_id: 老系统商品ID
     :return:
     """
@@ -247,7 +252,8 @@ def new_get_goods_spu_req_vo(goods_id):
     detail = []
     original = result[5]
     sn = result[6]
-    goods_type = 0 if result[7] == 'normal' else 1
+    if goods_type is None:
+        goods_type = 0 if result[7] == 'normal' else 1
 
     if result[4] != '':
         data = result[4]
@@ -285,8 +291,13 @@ def new_get_goods_spu_req_vo(goods_id):
         "original": original,
         "type": goods_type,  # 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
         "mainGallery": mainGallery,  # 商品主图,
-        "vipGallery": []  # vip主图
+        "vipGallery": [],  # vip主图
+        "remark": goods_id
     }
+
+    if goods_type == 2:
+        vo['vipDay'] = random.randint(7, 30)
+        vo['vipGallery'].append({"url": original})
 
     return vo
 
@@ -314,17 +325,19 @@ def get_goods_audit_status(goods_id):
     return market_enable, is_auth, under_message
 
 
-def add_goods(goods_id, token, admin_token):
+def add_goods(goods_id, token, admin_token, audit_type=0, goods_type=None):
     """
     添加商品
     :param goods_id: 老系统商品ID
     :param token: 商家token
+    :param goods_type: 商品类型 0: 普通 1: 臻宝 2: VIP
+    :param audit_type: 审核类型 0: 根据老系统数据库状态 其他: 审核通过
     :param admin_token: 管理后台token
     :return:
     """
     while 1:
-        spu_req_vo = new_get_goods_spu_req_vo(goods_id)  # 获取商品信息
-        sku_req_vo = get_goods_sku_req_vo(goods_id)  # 获取规格信息
+        spu_req_vo = new_get_goods_spu_req_vo(goods_id=goods_id, goods_type=goods_type)  # 获取商品信息
+        sku_req_vo = get_goods_sku_req_vo(goods_id=goods_id)  # 获取规格信息
 
         body = {
             "goodsSpuReqVO": spu_req_vo,
@@ -335,17 +348,19 @@ def add_goods(goods_id, token, admin_token):
         add = common.req.request_post(url="/store/seller/goodsManager/save", token=token, body=body)
 
         try:
-            print(f"商品【{spu_req_vo['name']}】添加成功")
             spu_id = add['data']
-            status, is_auth, under_message = get_goods_audit_status(goods_id)
+            if audit_type == 0:
+                status, is_auth, under_message = get_goods_audit_status(goods_id)
 
-            if is_auth != 0:
-                auto_goods_audit(token=admin_token, spu_id=spu_id, audit_status=is_auth, status=status,
-                                 under_message=under_message)
+                if is_auth != 0:
+                    auto_goods_audit(token=admin_token, spu_id=spu_id, audit_status=is_auth, status=status,
+                                     under_message=under_message)
+            else:
+                auto_goods_audit(token=admin_token, spu_id=spu_id, audit_status=1, status=3)
+
             break
         except KeyError:
             print(f"商品【{spu_req_vo['name']}】添加失败, 尝试重新添加")
-            pass
 
 
 def get_shop_goods(shop_id):
@@ -359,8 +374,6 @@ def get_shop_goods(shop_id):
         goods_id FROM es_goods 
     WHERE 
         seller_id = '{shop_id}'
-    AND 
-        disabled = 1
     """)
 
     for goods in goods_result:
@@ -430,7 +443,7 @@ def shop_create(shop_id):
         "username": shop_name
     }
 
-    create = common.req.request_post(url='/store/manage/shop', token=admin_token, body=body)
+    create = common.req.request_post(url='/store/manage/shop', token=common.admin_token(), body=body)
     if create['code'] == 200:
         print(f'注册成功,账号:{shop_name}, 密码:123456')
         return shop_name
@@ -487,7 +500,6 @@ def get_shop_info():
             'shop_name': shop_name
         })
 
-    # print(shop_name_list)
     return shop_name_list
 
 
@@ -498,15 +510,18 @@ def data_transfer():
         shop_id = shop['shop_id']
         shop_name = shop['shop_name']
         print(f'开始添加商家【{shop_name}】商品')
-        shop_token = common.shop_token(shop_name=shop_name)
+        token = common.shop_token(shop_name=shop_name)
         goods_data_list = get_shop_goods(shop_id)
         for goods_id in goods_data_list:
-            add_goods(goods_id=goods_id, token=shop_token, admin_token=admin_token)
+            add_goods(goods_id=goods_id, token=token, admin_token=admin_token)
         print(f'商家【{shop_name}】商品添加完成')
 
 
 if __name__ == '__main__':
-    pass
+    # pass
+    # 执行数据迁移
+    data_transfer()
+
     # 供应商账号注册(shop_id: 老系统供应商ID)
     # create_shop = shop_create(shop_id='48')
 
@@ -520,9 +535,12 @@ if __name__ == '__main__':
     #     add_goods(goods_id=data, token=shop_token)
 
     # 添加任意一个商品
-    # for i in range(1):
-    #     add_goods(goods_id=get_rand_goods(), token=shop_token, goods_type=0)
-    data_transfer()
-    # get_shop_info()
+    # for i in range(15):
+    #     add_goods(goods_id=get_rand_goods(),
+    #               token=shop_token,
+    #               admin_token=common.admin_token(),
+    #               audit_type=1,
+    #               goods_type=2)
+
 
 
