@@ -85,7 +85,7 @@ class Account(ApiRequests, Database):
         print(f'账号【{mobile}】注册成功，邀请人手机号：{r_mobile}')
         return res
 
-    def admin_login(self, username='admin', password='123456'):
+    def admin_login(self, username='wuweipeng', password='a123456'):
         """
         管理后台登录
         :param username: 管理后台账号

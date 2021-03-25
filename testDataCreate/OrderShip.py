@@ -63,14 +63,14 @@ def get_shop_order_delivers_goods(token, order_shop_id):
     order_goods_list = []
     # 遍历接口返回的商品信息,依次写入order_goods_list列表中
     for goods in request['data']:
-        # random_int = random.randint(1000000000, 9999999999)
+        random_int = random.randint(1000000000, 9999999999)
         order_goods_list.append({
             'mainOrderCode': goods['mainOrderCode'],  # 主订单Id
             'shopOrderCode': goods['shopOrderCode'],  # 子订单Id
             'id': goods['id'],  # 商品订单Id
-            "logisticsName": "京东物流",  # 物流公司
-            # "logisticsCode": "JD00" + str(random_int),  # 运单编号
-            "logisticsCode": 'JD0037980871457',  # 运单编号
+            "logisticsName": "京东",  # 物流公司
+            "logisticsCode": "JD00" + str(random_int),  # 运单编号
+            # "logisticsCode": 'JD0037980871457',  # 运单编号
             'nowDeliverCount': goods['remainCount'],  # 发货数量
             # 'nowDeliverCount': 1,  # 发货数量
             # 'count': goods['count'],  # 商品数量
@@ -298,7 +298,7 @@ def batch_delivery():
         order_all_delivery(order_all_id=order_all_id)
 
 
-def batch_receive():
+def batch_receive(token):
     """
     用户批量确认收货
     :return:
@@ -306,25 +306,25 @@ def batch_receive():
     order_all_id_list = form_file_get_order_all()
     for order_all_id in order_all_id_list:
         # 批量收货
-        goods_receiving(token=user_token, order_all_id=order_all_id)
+        goods_receiving(token=token, order_all_id=order_all_id)
 
 
 if __name__ == '__main__':
     pass
     # 用户登录
-    user_token = common.user_token(18123929299)
+    # user_token = common.user_token(19216850010)
 
     # 子订单发货
-    # order_shop_delivery(order_shop_id=1368501227842715650)
+    order_shop_delivery(order_shop_id=1374648080804098050)
 
     # 主订单发货
-    # order_all_delivery(order_all_id=42343124231)
+    # order_all_delivery(order_all_id=1373984479026376705)
 
     # 确认收货
-    # goods_receiving(token=user_token, order_all_id=1370708910620553217)
+    # goods_receiving(token=user_token, order_all_id=1372559245173944322)
 
     # 批量发货
     # batch_delivery()
 
     # 批量收货
-    batch_receive()
+    # batch_receive(token=user_token)

@@ -62,7 +62,7 @@ def get_cart_list(token):
 
 
 def create_cart_data(token, num=10, buy_num=1, sku_tuple=None):
-    condition = f'AND sku.id IN {sku_tuple}' if sku_tuple is not None else sku_tuple
+    condition = f'AND sku.id IN {sku_tuple}' if sku_tuple is not None else ''
     result = common.db.select_all(sql=f"""
     SELECT
         sku.id AS 'sku_id'
@@ -454,7 +454,7 @@ def get_assemble_sku():
 
     else:
         # 随机获取列表中其中一个拼团商品
-        ran_int = random.randint(0, int(len(request['data']['data'])))
+        ran_int = random.randint(0, int(len(request['data']['data'])) - 1)
 
         # 取出其中一个拼团商品的skuId和活动Id
         skuId = int(request['data']['data'][ran_int]['skuId'])
@@ -554,7 +554,7 @@ def create_assemble_order(token, buy_num, need_pause=0, sku_id=None, activity_id
                  sku_id=sku_id, activity_id=activity_id)
 
 
-def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, sku_id=None, spu_id=None):
+def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, sku_id=None, spu_id=None, share_dynamic_id=None, share_user_id=None):
     """
     创建立即购买订单
     :param goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
@@ -570,38 +570,37 @@ def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, s
         sku_id, spu_id = get_ran_goods(goods_type=goods_type)
 
     create_order(token=user_token, buy_num=buy_num, order_source=2, coupon_auto_use=coupon_auto_use,
-                 sku_id=sku_id, spu_id=spu_id, need_pause=need_pause)
+                 sku_id=sku_id, spu_id=spu_id, share_dynamic_id=share_dynamic_id, share_user_id=share_user_id, need_pause=need_pause)
 
 
 if __name__ == '__main__':
 
     # 登录用户账号,并获取token
     user_token = common.user_token(mobile=18123929299)
-
     # 随机获取商品
     # goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
     # sku_id, spu_id = get_ran_goods(goods_type=0)
 
-    for i in range(15):
+    for i in range(1):
         # print(f'====================第{i + 1}次执行开始=======================')
-
         # 立即购买(普通/臻宝/VIP商品订单)
-        # create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=0,
-        #                      sku_id=1370619491603464193, spu_id=1370619491595075586)
+        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=1,
+                             sku_id=None, spu_id=None,
+                             share_dynamic_id=None, share_user_id=None)
 
         # 创建随机批量订单
         # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=1353288943805689858,
-        #                       activity_id=1371654928526749698, team_id=1371809218402750465)
+        # create_assemble_order(token=user_token, buy_num=1, need_pause=1, sku_id=1370618451139248130,
+        #                       activity_id=1374614514607108098, team_id=None)
 
         # 创建限时抢购订单
         # create_promotion_order(token=user_token, buy_num=1, need_pause=0, sku_id=None, activity_id=None)
 
         # 生成购物车数据
-        # sku_tuple = '(1370618445376274434)'
-        # create_cart_data(token=user_token, num=1, buy_num=2, sku_tuple=sku_tuple)
+        # sku_tuple = '(1353288833461940225,1370618418289459201,1353289146692562946,1370618479295610881)'
+        # create_cart_data(token=user_token, num=3, buy_num=1, sku_tuple=None)
         # 购物车商品创建订单
         # create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
 

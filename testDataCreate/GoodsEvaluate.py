@@ -230,8 +230,8 @@ if __name__ == '__main__':
     # 添加评论/追评(add_type 1: 评价, 3: 追评 )
     # add_evaluate(token=user_token, add_type=1)
 
-    # 获取图片
-    # print(content_get())
+    # 获取评论
+    print(content_get())
 
     # 评价审核
-    evaluate_review()
+    # evaluate_review()

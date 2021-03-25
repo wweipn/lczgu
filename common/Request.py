@@ -25,6 +25,7 @@ class ApiRequests:
             headers['Authorization'] = f'Bearer {token}'
 
         headers['platform'] = 'ios'
+
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         try:
             result = {
@@ -42,7 +43,6 @@ class ApiRequests:
         except KeyError:
             print(res.json())
 
-
     def request_put(self, url, token=None, params=None, body=None, data=None, **kwargs):
         """
         PUT接口请求方法
@@ -59,6 +59,7 @@ class ApiRequests:
             headers['Authorization'] = f'Bearer {token}'
 
         headers['platform'] = 'ios'
+
         res = requests.put(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),
@@ -85,10 +86,12 @@ class ApiRequests:
         :return:
         """
         headers = {**kwargs}
+
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
 
         headers['platform'] = 'ios'
+
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
             'text': res.json(),

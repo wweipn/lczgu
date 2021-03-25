@@ -13,7 +13,6 @@ def get_ran_address_info():
         province_list = common.req.request_get('/store/common/area/list/0')
         province = random.choice(province_list['text']['data'])
         province_id = province['id']
-        province_id = 630000
         if province_id not in (810000, 820000, 710000, 460000):
             break
 
@@ -64,7 +63,7 @@ def add_address(token):
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=18123929299)
+    user_token = common.user_token(mobile=13113103424)
 
     # 添加收货地址
     add_address(token=user_token)

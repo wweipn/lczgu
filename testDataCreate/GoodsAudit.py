@@ -4,6 +4,7 @@
 
 import common
 import time
+import csv
 
 
 def goods_audit(audit_num=100, shop_name=None, audit_type=1, spu_id=None):
@@ -76,8 +77,39 @@ def goods_audit(audit_num=100, shop_name=None, audit_type=1, spu_id=None):
             return
 
 
+def goods_audit_batch():
+    file_path = common.get_file_path(file_name='id.csv', parent_path='test_file')
+    with open(file_path, 'r', encoding='utf-8') as GoodsData:
+        spu = csv.reader(GoodsData)
+        next(spu)
+        data_list = []
+        for data in spu:
+            spu_id = data[0]
+            data_list.append(spu_id)
+        return data_list
+
+
+def batch_audit():
+    data = goods_audit_batch()
+    admin_token = common.admin_token()
+    for spu_id in data:
+        url = '/store/manage/goodsManager/upStatus'
+        body = {
+            'id': spu_id,
+            'auditStatus': 2,
+            'status': 4,
+            'underMessage': '老系统数据迁移, 统一处理为: 下架, 审核拒绝'
+        }
+        audit = common.req.request_put(url=url, body=body,
+                                       token=admin_token)
+        common.api_print(name='商品审核', url='/store/manage/goodsManager/upStatus', result=audit, data=body)
+        time.sleep(0.2)
+
+
 if __name__ == '__main__':
-    shop_list = []
+    # shop_list = []
 
     # 商品审核
-    goods_audit(audit_num=100, audit_type=0, shop_name=None, spu_id=None)
+    # goods_audit(audit_num=100, audit_type=0, shop_name=None, spu_id=None)
+
+    batch_audit()

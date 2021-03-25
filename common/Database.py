@@ -14,6 +14,7 @@ class Database:
         初始化数据库连接
         """
         self.conn = pymysql.connect(
+            # host='rm-wz9v045a7509h21e7zo.mysql.rds.aliyuncs.com',
             host='192.168.1.10',
             port=3306,
             user='wuweipeng',

@@ -144,92 +144,9 @@ def get_goods_sku_req_vo(goods_id):
     return goods_sku_req_vo
 
 
-def get_goods_spu_req_vo(goods_id, goods_type=0):
-    """
-    生成保存商品接口中商品VO的数据
-    :param goods_id: 老系统商品ID
-    :param goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
-    :return:
-    """
-    result = old_db.select_one(sql=f"""
-    SELECT
-        goods_name, category_id, goods_id, brand_id, mobile_intro, original, sn
-    FROM
-        es_goods
-    WHERE
-        goods_id = '{goods_id}'
-    """)
-    name = result[0]
-    category_lv3_id = category_dic[result[1]]
-    category_lv2_id = get_parent_category_id(category_lv3_id)
-    category_lv1_id = get_parent_category_id(category_lv2_id)
-    sn_goods_id = result[2]
-    brand_id = brand_dic[result[3]] if result[3] is not None else 0
-    detail = []
-    original = result[5]
-    sn = result[6]
-
-    # 判断商品主图列表是否为空或者有布尔值,处理后有图片则写入
-    if result[4] != '':
-        if result[4].find('false') != -1:
-            if result[4].find('true') != -1:
-                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None").
-                                           replace("true", "None")))
-            else:
-                image_url_list = list(eval(result[4].replace("null", "None").replace("false", "None")))
-        else:
-            image_url_list = list(eval(result[4].replace("null", "None")))
-        # 查询商品详情页图片,写入detail中
-        for goods_detail_image_url in image_url_list:
-            detail_url = goods_detail_image_url["content"]
-            detail.append({"url": detail_url})
-
-    # 获取商品主图,写入mainGallery中
-    main_image_result = old_db.select_all(sql=f"""
-    SELECT original FROM es_goods_gallery WHERE goods_id = '{goods_id}'
-    """)
-    mainGallery = []
-    for goods_main_image_url in main_image_result:
-        main_image = goods_main_image_url[0]
-        mainGallery.append({'url': main_image})
-
-    vo = {
-        "specsItemRespVOList": get_specs_item_resp_vo_list(goods_id=goods_id),
-        "name": name,
-        # "name": '所有地区条件包邮I类',
-        "categoryId": category_lv1_id,  # 一级分类ID
-        "categoryId2": category_lv2_id,  # 二级分类ID
-        "categoryId3": category_lv3_id,  # 三级分类ID
-        # "sn": sn_goods_id,  # 老系统SPU
-        "sn": sn,  # 老系统sn
-        "brandId": brand_id,  # 品牌ID
-        # "enableQuantity": len(get_goods_sku_req_vo(goods_id)) * 100,  # 库存总和
-        # "enableQuantity": len(get_goods_sku_req_vo(goods_id)) * 100,  # 库存总和
-        "warnQuantity": 20,  # 预警库存
-        "transfeeCharge": 0,  # 包邮：0 不包邮：1
-        # "templateId": "1362706795373576194",  # 运费模板ID
-        "isSupportAfter": 1,  # 是否支持售后7天 0:否；1:是
-        # "specialTitle": ",  # 特殊说明标题
-        # "specialContent": ",  # 特殊内容
-        "detail": f'{detail}'.replace("'", '"').replace(' ', ''),  # 商品详情图
-        "original": original,
-        "type": goods_type,  # 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
-        "mainGallery": mainGallery,  # 商品主图,
-        # "vipDay": 30,  # VIP天数
-        "vipGallery": []  # vip主图
-    }
-
-    if goods_type == 2:
-        vo['vipDay'] = random.randint(7, 30)
-        vo['vipGallery'].append({"url": original})
-
-    return vo
-
-
-def new_get_goods_spu_req_vo(goods_id, goods_type=None):
+def new_get_goods_spu_req_vo(goods_id):
     """
     生成保存商品接口中商品VO的数据(数据迁移用)
-    :param goods_type: 商品类型, 如果没有传的话取老系统的类型
     :param goods_id: 老系统商品ID
     :return:
     """
@@ -240,8 +157,6 @@ def new_get_goods_spu_req_vo(goods_id, goods_type=None):
         es_goods
     WHERE
         goods_id = '{goods_id}'
-    AND 
-        disabled = 1
     """)
 
     name = result[0]
@@ -252,8 +167,7 @@ def new_get_goods_spu_req_vo(goods_id, goods_type=None):
     detail = []
     original = result[5]
     sn = result[6]
-    if goods_type is None:
-        goods_type = 0 if result[7] == 'normal' else 1
+    goods_type = 0 if result[7] == 'NORMAL' else 1
 
     if result[4] != '':
         data = result[4]
@@ -284,7 +198,7 @@ def new_get_goods_spu_req_vo(goods_id, goods_type=None):
         "categoryId3": category_lv3_id,  # 三级分类ID
         "sn": sn,  # 老系统sn
         "brandId": brand_id,  # 品牌ID
-        "warnQuantity": 20,  # 预警库存
+        "warnQuantity": 10,  # 预警库存
         "transfeeCharge": 0,  # 包邮：0 不包邮：1
         "isSupportAfter": 1,  # 是否支持售后7天 0:否；1:是
         "detail": f'{detail}'.replace("'", '"').replace(' ', ''),  # 商品详情图
@@ -295,9 +209,9 @@ def new_get_goods_spu_req_vo(goods_id, goods_type=None):
         "remark": goods_id
     }
 
-    if goods_type == 2:
-        vo['vipDay'] = random.randint(7, 30)
-        vo['vipGallery'].append({"url": original})
+    # if goods_type == 2:
+    #     vo['vipDay'] = random.randint(7, 30)
+    #     vo['vipGallery'].append({"url": original})
 
     return vo
 
@@ -325,18 +239,17 @@ def get_goods_audit_status(goods_id):
     return market_enable, is_auth, under_message
 
 
-def add_goods(goods_id, token, admin_token, audit_type=0, goods_type=None):
+def add_goods(goods_id, token, admin_token, audit_type=0):
     """
     添加商品
     :param goods_id: 老系统商品ID
     :param token: 商家token
-    :param goods_type: 商品类型 0: 普通 1: 臻宝 2: VIP
     :param audit_type: 审核类型 0: 根据老系统数据库状态 其他: 审核通过
     :param admin_token: 管理后台token
     :return:
     """
     while 1:
-        spu_req_vo = new_get_goods_spu_req_vo(goods_id=goods_id, goods_type=goods_type)  # 获取商品信息
+        spu_req_vo = new_get_goods_spu_req_vo(goods_id=goods_id)  # 获取商品信息
         sku_req_vo = get_goods_sku_req_vo(goods_id=goods_id)  # 获取规格信息
 
         body = {
@@ -371,7 +284,9 @@ def get_shop_goods(shop_id):
     goods_list = []
     goods_result = old_db.select_all(sql=f"""
     SELECT 
-        goods_id FROM es_goods 
+        goods_id 
+    FROM 
+        es_goods 
     WHERE 
         seller_id = '{shop_id}'
     """)
@@ -541,6 +456,5 @@ if __name__ == '__main__':
     #               admin_token=common.admin_token(),
     #               audit_type=1,
     #               goods_type=2)
-
 
 

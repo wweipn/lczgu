@@ -69,13 +69,14 @@ def coupon_create(vip=None):
     use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
     # use_scope = random.randint(0, 2)
 
-    coupon_price = random.randint(10, 30)
-    coupon_threshold_price = random.randint(40, 100)
-    # coupon_price = int(input('请输入优惠券金额:\n'))
-    # coupon_threshold_price = int(input('请输入优惠券门槛:\n'))
+    # coupon_price = random.randint(10, 30)
+    # coupon_threshold_price = random.randint(40, 100)
+    coupon_price = float(input('请输入优惠券金额:\n'))
+    coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
 
     body = {
-        "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
+        # "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
+        "title": f"{coupon_price}元优惠券",
         "couponPrice": coupon_price,
         "couponThresholdPrice": coupon_threshold_price,
         "scopeDescription": "优惠券使用范围描述",
@@ -122,6 +123,7 @@ def coupon_create(vip=None):
     elif use_scope == 2:
         # 部分商品
         body['scopeId'] = get_goods()
+        body['scopeId'] = '1353289069701918721,'
 
     common.account.admin_login()
     admin_token = common.account.get_admin_token()
@@ -131,19 +133,19 @@ def coupon_create(vip=None):
                                       body=body)
     data = request['data']
 
-    print(f"""
-    【优惠券创建成功】
-    标题: {data['title']}
-    金额: {data['couponPrice']}元
-    门槛: {data['couponThresholdPrice']}元
-    开始时间: {data['startTime']}
-    结束时间: {data['endTime']}
-    获取方式: {data['type']}
-    适用范围: {data['useScope']}
-    使用详情（分类/商品ID）: {body['scopeId']}
-    ===========================================================
-
-    """)
+    print(data)
+    # print(f"""
+    # 【优惠券创建成功】
+    # 标题: {data['title']}
+    # 金额: {data['couponPrice']}元
+    # 门槛: {data['couponThresholdPrice']}元
+    # 开始时间: {data['startTime']}
+    # 结束时间: {data['endTime']}
+    # 获取方式: {data['type']}
+    # 适用范围: {data['useScope']}
+    # 使用详情（分类/商品ID）: {body['scopeId']}
+    # ===========================================================
+    # """)
 
 
 def receive_coupon(token, coupon_id, save_data=None):
@@ -160,11 +162,11 @@ if __name__ == '__main__':
     pass
     # 优惠券创建
     for i in range(1):
-        coupon_create(vip=1)
+        coupon_create(vip=0)
         time.sleep(0.2)
 
     # 领取优惠券
-    # coupon_list = []
+    # coupon_list = [1372528607791947777, 1372528405186093058]
     # user_token = common.user_token(18123929299)
     #
     # for i in coupon_list:
