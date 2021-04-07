@@ -24,7 +24,7 @@ class ApiRequests:
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
 
-        headers['platform'] = 'ios'
+        headers['platform'] = 'WEB'
 
         res = requests.post(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         try:
@@ -58,7 +58,7 @@ class ApiRequests:
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
 
-        headers['platform'] = 'ios'
+        headers['platform'] = 'WEB'
 
         res = requests.put(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {
@@ -90,7 +90,7 @@ class ApiRequests:
         if token is not None:
             headers['Authorization'] = f'Bearer {token}'
 
-        headers['platform'] = 'ios'
+        headers['platform'] = 'WEB'
 
         res = requests.get(f'{self.host}{url}', headers=headers, params=params, json=body, data=data)
         result = {

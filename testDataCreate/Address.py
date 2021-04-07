@@ -63,7 +63,7 @@ def add_address(token):
 
 if __name__ == '__main__':
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=13113103424)
+    user_token = common.user_token(mobile=18123929299)
 
     # 添加收货地址
     add_address(token=user_token)

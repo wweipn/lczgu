@@ -75,7 +75,6 @@ def create_cart_data(token, num=10, buy_num=1, sku_tuple=None):
         AND spu.type = 0 -- '商品类型 0:普通商品;1:臻宝商品;2.VIP商品'
         AND spu.is_deleted = 0
         {condition}
-    ORDER BY RAND()
     LIMIT {num}
     """)
 
@@ -114,6 +113,29 @@ def search_promotions(sku_id):
             return None, None
 
     return half_price_id, full_reduction_id
+
+
+def set_password(mobile, token):
+    """
+    设置支付密码
+    :param mobile:
+    :param token:
+    :return:
+    """
+    sms_code_valid = common.req.request_get(url='/store/common/sms/valid',
+                                            token=token,
+                                            params={'mobile': mobile,
+                                                    'type': 'SET_PAY_PWD',
+                                                    'code': 111111})
+    set_password_token = sms_code_valid['data']
+
+    # 设置支付密码
+    set_password_body = {
+        'codeToken': set_password_token,
+        'password': 123456
+    }
+
+    common.req.request_post(url='/store/api/account/pay/set-pass', token=token, body=set_password_body)
 
 
 def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=None, sku_id=None, spu_id=None,
@@ -576,33 +598,35 @@ def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, s
 if __name__ == '__main__':
 
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=18123929299)
+    user_token = common.user_token(mobile=19216850036)
     # 随机获取商品
     # goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
     # sku_id, spu_id = get_ran_goods(goods_type=0)
 
     for i in range(1):
         # print(f'====================第{i + 1}次执行开始=======================')
-        # 立即购买(普通/臻宝/VIP商品订单)
-        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=1,
-                             sku_id=None, spu_id=None,
-                             share_dynamic_id=None, share_user_id=None)
+        # 立即购买(0:普通商品 1:臻宝商品 2.VIP商品)
+        # create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=1,
+        #                      sku_id=None, spu_id=None,
+        #                      share_dynamic_id=None, share_user_id=None)
 
         # 创建随机批量订单
         # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_assemble_order(token=user_token, buy_num=1, need_pause=1, sku_id=1370618451139248130,
-        #                       activity_id=1374614514607108098, team_id=None)
+        # create_assemble_order(token=user_token, buy_num=4, need_pause=0, sku_id=1370632366468382721,
+        #                       activity_id=1379606850739228674, team_id=None)
 
         # 创建限时抢购订单
-        # create_promotion_order(token=user_token, buy_num=1, need_pause=0, sku_id=None, activity_id=None)
+        # create_promotion_order(token=user_token, buy_num=5, need_pause=0,
+        #                        sku_id=1352086062821847042, activity_id=1379242091527393281)
 
         # 生成购物车数据
-        # sku_tuple = '(1353288833461940225,1370618418289459201,1353289146692562946,1370618479295610881)'
-        # create_cart_data(token=user_token, num=3, buy_num=1, sku_tuple=None)
+
+        # data = '(1352081419253362689,1352064753253527554,1352064753173835778,1352081419354025985)'
+        create_cart_data(token=user_token, num=6, buy_num=1, sku_tuple=None)
         # 购物车商品创建订单
-        # create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
+        create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
 
         # print(f'====================第{i + 1}次执行结束=======================')
         pass
@@ -613,17 +637,5 @@ if __name__ == '__main__':
     # for data in user_token_list:
     #     batch_order_rand_create(token=data[1], num=2)
 
-    #   生成压测提交订单接口的数据
-    #   登录多个用户账号,并获取token
-    # common.account.user_login(source=1)
-    # user_token_list = common.account.get_user_token()
-
-    # file = common.get_file_path('stress_testing.csv', 'test_file')
-    # with open(file, 'w', newline='', encoding='utf-8') as StressTest:
-    #     csv_file_writer = csv.writer(StressTest)
-    #     csv_file_writer.writerow(['token', 'body'])
-    #     for data in user_token_list:
-    #         token1, body = create_order(token=data[1], save_data=1, buy_num=1, sku_id=1353288833893953537,
-    #                                     order_source=1, activity_type=1, activity_id=1368102945052180481)
-    #         new_body = str(body).replace("'", '"').replace("None", 'null')
-    #         csv_file_writer.writerow([token1, new_body])
+    # 设置支付密码
+    # set_password(mobile=13155327917, token=user_token)

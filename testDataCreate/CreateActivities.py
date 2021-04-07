@@ -54,7 +54,7 @@ def get_activity_goods(num, sql_limit=0, activity_type=1, activity_num=5, limit_
         AND spu.STATUS = 3 
         AND spu.type = 0 
         AND sku.is_deleted = 0
-        AND sku.id = 1370617190700564482
+        # AND sku.id = 1370617190700564482
         AND sku.price > 0
         LIMIT {sql_limit}, 1)
         """
@@ -74,7 +74,7 @@ def get_activity_goods(num, sql_limit=0, activity_type=1, activity_num=5, limit_
         AND spu.type = 0 
         AND sku.is_deleted = 0
         AND sku.price > 0
-        AND sku.id not in (1353289156519817217,1370618369719418881,1370617171918471170,1351869208912293890,1353288741665402882) 
+        # AND sku.id  in (1370617444850221057,1370631959348264962) 
         ORDER BY RAND() 
         LIMIT {num}
         """
@@ -97,6 +97,7 @@ def get_activity_goods(num, sql_limit=0, activity_type=1, activity_num=5, limit_
                     "skuId": sku_id,
                     "activityNum": activity_num,
                     "limitNum": limit_num,
+                    "sort": 99,
                     "price": round(float(price * 80 / 100), 2)})
             elif activity_type == 3:
                 goods_list.append({
@@ -105,7 +106,7 @@ def get_activity_goods(num, sql_limit=0, activity_type=1, activity_num=5, limit_
                     "price": round(float(price * 70 / 100), 2),
                     "skuId": sku_id,
                     "sort": 99
-                                   })
+                })
         # print(goods_list)
         return goods_list
     else:
@@ -127,7 +128,7 @@ def half_price_activity(goods_num):
     # 定义开始时间和结束时间
     now = datetime.now()
     start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = (now + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
     # end_time = (now + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -175,9 +176,9 @@ def full_discount(goods_num, limit_num=100):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')
-    # end_time = (now + timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = '2021-03-29 23:59:59'
+    start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
+    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    # end_time = '2021-03-29 23:59:59'
 
     # 定义请求参数
     body = {
@@ -221,10 +222,10 @@ def flash_sale(time_line, sql_limit=0, goods_type=1, days=0, goods_num=10):
     seckill_name = f"限时抢购({start_time} {time_line})"
 
     body = {
-     "startTime": start_time,
-     "seckillName": seckill_name,
-     "timeLine": time_line,
-     "goodsList": goods_list
+        "startTime": start_time,
+        "seckillName": seckill_name,
+        "timeLine": time_line,
+        "goodsList": goods_list
     }
 
     request = common.req.request_post(url='/store/manage/promotion/time-limit/saveTimeLimit',
@@ -246,23 +247,24 @@ def flash_sale_from_file(time_line, days, file_name):
     :return:
     """
 
-    admin_token = common.admin_token()
+    admin_token = common.account.get_admin_token()
     now = datetime.now()
     start_time = (now + timedelta(days=days)).strftime('%Y-%m-%d')
     goods_list = get_goods_data_from_file(file_name=file_name, activity_type=1)
     seckill_name = f"限时抢购({start_time} {time_line})"
 
     body = {
-     "startTime": start_time,
-     "seckillName": seckill_name,
-     "timeLine": time_line,
-     "goodsList": goods_list
+        "startTime": start_time,
+        "seckillName": seckill_name,
+        "timeLine": time_line,
+        "goodsList": goods_list
     }
+    # print(str(body).replace("'", '"'))
     request = common.req.request_post(url='/store/manage/promotion/time-limit/saveTimeLimit',
                                       body=body,
                                       token=admin_token)
     print(f"""
-    {str(body).replace("'", '"')} 
+    {str(body).replace("'", '"')}
     {request['text']}
 
     """)
@@ -320,7 +322,7 @@ def assemble_from_file(file_name, day, add_num, limit_num, chief_type, team_type
     :return:
     """
 
-    admin_token = common.admin_token()
+    # admin_token = common.admin_token()
     now = datetime.now()
     goods_list = get_goods_data_from_file(file_name=file_name, activity_type=2)
     start_date = str((now + timedelta(days=day)).date())
@@ -340,13 +342,13 @@ def assemble_from_file(file_name, day, add_num, limit_num, chief_type, team_type
         "title": name,  # 活动标题
         "goodsList": goods_list  # 商品列表
     }
-
-    url = '/store/manage/promotion/pintuan/savePintuan'
-    request = common.req.request_post(url=url,
-                                      body=body,
-                                      token=admin_token)
-
-    common.api_print(name='创建拼团活动', url=url, data=body, result=request)
+    print(str(body).replace("'", '"'))
+    # url = '/store/manage/promotion/pintuan/savePintuan'
+    # request = common.req.request_post(url=url,
+    #                                   body=body,
+    #                                   token=admin_token)
+    #
+    # common.api_print(name='创建拼团活动', url=url, data=body, result=request)
 
 
 def goods_detail_activity():
@@ -396,7 +398,8 @@ def get_goods_data_from_file(file_name, activity_type):
                         "skuId": sku_id,
                         "price": price,
                         "activityNum": activity_num,
-                        "limitNum": limit_num
+                        "limitNum": limit_num,
+                        "sort": 99
                     })
             return data_list
 
@@ -428,7 +431,7 @@ def search_new_spu_sku_id(old_sku_id):
         goods_sku
     LEFT JOIN goods_spu ON goods_spu.id = goods_sku.goods_id
     WHERE	
-        old_sku = {old_sku_id}
+        goods_sku.id = {old_sku_id}
     """)
     spu_id = result[0]
     sku_id = result[1]
@@ -439,21 +442,30 @@ def search_new_spu_sku_id(old_sku_id):
 
 if __name__ == '__main__':
     pass
-    half_price_activity(goods_num=10)  # 第二件半价活动创建
-    # full_discount(goods_num=10)  # 满减活动创建
-    # assemble(day=0, goods_num=2, chief_type=1, team_type=0)  # 拼团活动创建
-    # assemble(day=0, goods_num=1, chief_type=0)  # 拼团活动创建
-    # assemble(day=0, add_num=2, goods_num=1, chief_type=0, team_type=1)
-    # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=30)  # 限时抢购活动创建
-    # flash_sale(days=3, time_line='10:00:00-13:59:59', goods_num=15)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=5)  # 限时抢购活动创建
-    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=30)  # 限时抢购活动创建
+
+    # 第二件半价活动创建
+    # half_price_activity(goods_num=10)
+
+    # 满减活动创建
+    # full_discount(goods_num=10)
+
+    # 拼团活动创建
+    assemble(day=0, add_num=2, goods_num=10, chief_type=0, team_type=0)  # 拼团活动创建
+
+    # 限时抢购活动创建
+    # flash_sale(days=2, time_line='00:00:00-09:59:59', goods_num=15)
+    # flash_sale(days=2, time_line='10:00:00-13:59:59', goods_num=15)
+    # flash_sale(days=2, time_line='14:00:00-19:59:59', goods_num=15)
+    # flash_sale(days=2, time_line='20:00:00-23:59:59', goods_num=15)
+
     # 从文件获取添加限时抢购
-    # flash_sale_from_file(file_name='0323 00 限时抢购.csv', time_line='00:00:00-09:59:59', days=1)
+    # flash_sale_from_file(file_name='0330 00.csv', time_line='00:00:00-09:59:59', days=1)
+    # flash_sale_from_file(file_name='0331 10.csv', time_line='10:00:00-13:59:59', days=0)
+    # flash_sale_from_file(file_name='0404 14.csv', time_line='14:00:00-19:59:59', days=7)
+    # flash_sale_from_file(file_name='0329 20.csv', time_line='20:00:00-23:59:59', days=0)
 
     # 从文件获取添加拼团
-    # assemble_from_file(file_name='0328 2人团 虚拟成团.csv',
-    #                    day=4, add_num=2, limit_num=100, chief_type=0, team_type=1)
+    # assemble_from_file(file_name='0402 3人团 团长免单.csv', day=0, add_num=3, limit_num=100, chief_type=1, team_type=0)
 
-    # print(get_goods_data_from_file(file_name='0328 2人团 虚拟成团.csv', activity_type=2))
-    # print(search_new_spu_sku_id(13449))
+    # 验证文件获取的商品数据结构
+    # print(get_goods_data_from_file(file_name='0331 10.csv', activity_type=1))

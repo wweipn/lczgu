@@ -15,13 +15,13 @@ def user_register(count=1, r_mobile=None):
     """
     for i in range(count):
         common.account.user_register(r_mobile=r_mobile)
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
 
 if __name__ == '__main__':
     pass
     # 推荐人注册
-    user_register(r_mobile=18123929299, count=1)
+    user_register(r_mobile=19216850225, count=2)
 
     # 无推荐人注册
     # user_register(count=1)

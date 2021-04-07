@@ -69,10 +69,10 @@ def coupon_create(vip=None):
     use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
     # use_scope = random.randint(0, 2)
 
-    # coupon_price = random.randint(10, 30)
-    # coupon_threshold_price = random.randint(40, 100)
-    coupon_price = float(input('请输入优惠券金额:\n'))
-    coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
+    coupon_price = random.randint(10, 30)
+    coupon_threshold_price = random.randint(40, 100)
+    # coupon_price = float(input('请输入优惠券金额:\n'))
+    # coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
 
     body = {
         # "title": f"{coupon_price}元优惠券（满{coupon_threshold_price}元可用）",
@@ -90,6 +90,7 @@ def coupon_create(vip=None):
         # 相对时间, 时间长度为7天
         body['timeType'] = 1
         body['timeValue'] = random.randint(1, 7)
+        # body['timeValue'] = 31
 
     elif time_type == 0:
         # 固定时间, 开始时间为当前时间+1分钟, 结束时间为当前时间+7天

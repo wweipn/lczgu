@@ -1,5 +1,5 @@
 
-def get_host(env='prod'):
+def get_host(env='dev'):
     """
     获取域名配置
     :param env:
@@ -10,14 +10,13 @@ def get_host(env='prod'):
         # return 'http://192.168.1.43:8001'  # 江平本地环境
         # return 'http://192.168.1.39:8001'  # 何星本地环境
         # return 'http://192.168.1.117:8001'  # 汤升本地环境
-        return 'http://192.168.1.8:8001'  # 开发环境后台
-        # return 'http://192.168.1.8:8101'  # 测试环境后台
+        return 'http://192.168.1.8:8001'  # 开发环境
 
     elif env == 'test':
-        return 'http://192.168.1.8:8101'  # 测试环境后台
+        return 'http://192.168.1.8:8101'  # 测试环境
 
     elif env == 'prod':
-        return 'https://apistore.lczgu.com'
+        return 'https://apistore.lczgu.com'  # 线上环境
 
 
 def get_db(env='dev'):

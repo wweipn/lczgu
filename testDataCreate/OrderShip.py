@@ -17,9 +17,6 @@ def order_shop_delivery(order_shop_id):
 
     # 获取商家名称
     shop_name = get_shop_name(order_shop_id=order_shop_id)
-    if shop_name == 400:
-        print(f'子订单({order_shop_id})没有待发货的商品')
-        return
 
     # 商家登录
     shop_token = common.shop_token(shop_name)
@@ -32,22 +29,20 @@ def order_shop_delivery(order_shop_id):
         print(f'商家【{shop_name}】当前订单(order_shop_id: {order_shop_id})没有待发货的商品')
         return
 
-    for order_goods in shop_order_delivers_goods:
-        body = {
-            'orderDeliverRespVOS': [order_goods]
-        }
+    # 定义发货请求参数, 并调用发货接口
+    body = {'orderDeliverRespVOS': shop_order_delivers_goods}
 
-        request = common.req.request_post(url='/store/seller/order/upStatusDeliver',
-                                          body=body,
-                                          token=shop_token)
-        print(f"""
-        商家【{shop_name}】发货(/store/seller/order/upStatusDeliver)
-        请求：
-        {body}
+    request = common.req.request_post(url='/store/seller/order/upStatusDeliver',
+                                      body=body,
+                                      token=shop_token)
+    print(f"""
+    商家【{shop_name}】发货(/store/seller/order/upStatusDeliver)
+    请求：
+    {body}
 
-        返回：
-        {request['text']}
-        """.replace("'", '"').replace('None', 'null'))
+    返回：
+    {request['text']}
+    """.replace("'", '"').replace('None', 'null'))
 
 
 def get_shop_order_delivers_goods(token, order_shop_id):
@@ -65,10 +60,10 @@ def get_shop_order_delivers_goods(token, order_shop_id):
     for goods in request['data']:
         random_int = random.randint(1000000000, 9999999999)
         order_goods_list.append({
-            'mainOrderCode': goods['mainOrderCode'],  # 主订单Id
-            'shopOrderCode': goods['shopOrderCode'],  # 子订单Id
+            'mainOrderCode': goods['mainOrderCode'],  # 主订Id
+            'shopOrderCode': goods['shopOrderCode'],  # 子订单单Id
             'id': goods['id'],  # 商品订单Id
-            "logisticsName": "京东",  # 物流公司
+            "logisticsName": "京东物流",  # 物流公司
             "logisticsCode": "JD00" + str(random_int),  # 运单编号
             # "logisticsCode": 'JD0037980871457',  # 运单编号
             'nowDeliverCount': goods['remainCount'],  # 发货数量
@@ -91,27 +86,19 @@ def get_shop_name(order_shop_id):
     :return:
     """
     result = common.db.select_one(sql=f"""
+    SELECT username from user_account where id = (
     SELECT
-        shop_info.shop_name
+        shop_info.account_id
     FROM
         order_goods
         LEFT JOIN shop_info ON shop_info.id = order_goods.shop_id
     WHERE
-        order_shop_id = '{order_shop_id}'
-    AND
-        order_goods.STATUS = 4
-    AND
-        order_goods.is_deleted = 0
-    GROUP BY order_goods.order_shop_id
+        order_shop_id = '{order_shop_id}' limit 1)
     """)
 
-    # 查询子订单ID下是否存在未发货的商品,如果没有,则返回400
-    try:
-        shop_name = result[0]
-        return shop_name
+    shop_name = result[0]
 
-    except TypeError:
-        return 400
+    return shop_name
 
 
 def get_order_shop_id(order_all_id):
@@ -131,26 +118,20 @@ def get_order_shop_id(order_all_id):
         LEFT JOIN shop_info ON shop_info.id = order_goods.shop_id
     WHERE
         order_id = '{order_all_id}'
-    AND
-        order_goods.STATUS = 4
-    AND
-        order_goods.is_deleted = 0
     GROUP BY order_goods.order_shop_id
     """)
 
     order_shop_id_list = []
 
-    # 遍历查询到的结果
+    # 遍历查询到的结果,把子订单ID和商家名称写入列表中
     for data in result:
         order_shop_id = data[0]
         shop_name = data[1]
         # 如果列表中不存在对应商家的字典,则添加字典并写入
-        if shop_name not in order_shop_id_list:
-            order_shop_id_list.append({
-                shop_name: order_shop_id
-            })
-        else:
-            order_shop_id_list[shop_name].append(order_shop_id)
+        order_shop_id_list.append({
+            shop_name: order_shop_id
+        })
+
     return order_shop_id_list
 
 
@@ -312,16 +293,16 @@ def batch_receive(token):
 if __name__ == '__main__':
     pass
     # 用户登录
-    # user_token = common.user_token(19216850010)
+    # user_token = common.user_token(18123929299)
 
     # 子订单发货
-    order_shop_delivery(order_shop_id=1374648080804098050)
+    order_shop_delivery(order_shop_id=1377530422157979650)
 
     # 主订单发货
-    # order_all_delivery(order_all_id=1373984479026376705)
+    # order_all_delivery(order_all_id=1379760349749764098)
 
     # 确认收货
-    # goods_receiving(token=user_token, order_all_id=1372559245173944322)
+    # goods_receiving(token=user_token, order_all_id=1377960050575810561)
 
     # 批量发货
     # batch_delivery()
