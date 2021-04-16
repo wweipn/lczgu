@@ -50,14 +50,12 @@ def update_user_money(token, mobile, money_type, update_type, money):
 
 
 if __name__ == '__main__':
-    # 获取管理后台token
-    admin_token = common.admin_token()
 
-    # 修改用户可提现余额/臻宝/活动余额
     """
+    修改用户可提现余额/臻宝/活动余额
     money_type: 类型 0:可提现余额, 1:活动余额, 2:臻宝
     update_type: 修改类型 1:扣除, 2:添加
     """
-    update_user_money(token=admin_token, mobile=18123999999, money_type=1, update_type=2, money=999)
+    update_user_money(token=common.admin_token(), mobile=18123999999, money_type=1, update_type=2, money=999)
 
     # send_coupon(account_id=1354604046874423298, coupon_id=1377905938366816257)
