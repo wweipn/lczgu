@@ -52,40 +52,57 @@ class Account(ApiRequests, Database):
         new_mobile = str(int(last_number) + 1)
         return new_mobile
 
-    def set_recommend(self, mobile):
+    def set_recommend(self, mobile=None, recommend_id=None):
         """
         获取注册绑定关系的token
+        :param recommend_id: 邀请码
         :param mobile: 传入推荐人手机号后,调用get_userinfo方法获取推荐码
         :return : 返回的access_token用于登录接口的请求头的token,传入后会绑定用户关系
         """
-        recommend_id = self.get_userinfo(mobile)
+        recommend_id = self.get_userinfo(mobile) if recommend_id is None else recommend_id
         # 调用绑定关系接口, 获取响应头的AccessToken
         res = self.request_post('/store/api/account/recommend', params={'recommendId': recommend_id})
         access_token = res['rep_header']['AccessToken']
         return access_token
 
-    def user_register(self, r_mobile=None):
+    def user_register(self, r_mobile=None, mobile=None, recommend_id=None):
         """
         用户注册
+        :param recommend_id: 邀请码
+        :param mobile: 注册手机号码
         :param r_mobile: 推荐人手机号
         :return: res: 参考request_post方法返回值, mobile: 从get_new_mobile方法获取到的最新手机号
         """
-        mobile = self.get_new_mobile()
+
+        # 判断是否有传手机号,如果没有传手机号,则去数据库查一个最新的手机号出来
+        mobile = self.get_new_mobile() if mobile is None else mobile
+
+        # 初始化一个请求头token
         access_token = None
-        if r_mobile is not None:
-            access_token = self.set_recommend(r_mobile)
+
+        if r_mobile is not None or recommend_id is not None:
+            access_token = self.set_recommend(r_mobile, recommend_id=recommend_id)
         else:
             pass
+
+        # 获取短信验证码, 定义请求体参数
+        sms_code = self.get_sms_code(mobile=mobile)
         body = {
-            'code': '111111',  # 验证码(当前测试环境去掉了校验,默认传111111)
+            'code': sms_code,  # 验证码
             'mobile': mobile,  # 手机号
             'source': 'IOS'  # ANDROID, H5, IOS, MINI
         }
-        res = self.request_post('/store/api/account/login', body=body, token=access_token)
-        print(f'账号【{mobile}】注册成功，邀请人手机号：{r_mobile}')
-        return res
 
-    def admin_login(self, username='wuweipeng', password='a123456'):
+        # 登录
+        res = self.request_post('/store/api/account/login', body=body, token=access_token)
+
+        # 获取登录返回的token,查询邀请码
+        token = res['rep_header']['AccessToken']
+        get_info = self.request_get('/store/api/account/userinfo', token=token)
+        recommend_id = get_info['text']['data']['recommendId']
+        print(f'账号: {mobile}，邀请码: {recommend_id}')
+
+    def admin_login(self, username='admin', password='a123456'):
         """
         管理后台登录
         :param username: 管理后台账号
@@ -124,7 +141,8 @@ class Account(ApiRequests, Database):
             csv_file_writer = csv.writer(UserTokenFile)
             csv_file_writer.writerow(['account', 'token'])
             for account in login_user_list:
-                body = {'mobile': account, 'code': '111111', "source": "ANDROID"}
+                sms_code = self.get_sms_code(mobile=account)
+                body = {'mobile': account, 'code': sms_code, "source": "ANDROID"}
                 res = self.request_post('/store/api/account/login', body=body)
                 if res['text']['code'] != 200:
                     print(f'【{account}】登录失败', res['text'])
@@ -194,3 +212,40 @@ class Account(ApiRequests, Database):
             for row in csv_file_read:
                 admin_token = row[0]
         return admin_token
+
+    def send_sms_code(self, mobile, sms_type):
+        """
+        验证码
+        :param mobile:
+        :param sms_type: 验证码类型  LOGIN:登录 REGISTER:注册 BIND_MOBILE:绑定手机 MODIFY_PASSWORD:修改密码 SET_PAY_PWD:设置支付密码 VALIDATE_MOBILE:验证手机
+        :return:
+        """
+        url = '/store/common/sms/code'
+        params = {
+            'type': sms_type,
+            'mobile': mobile
+        }
+
+        self.request_get(url=url, params=params)
+
+    def get_sms_code(self, mobile, sms_type='LOGIN'):
+        """
+        获取登录短信验证码
+        :param sms_type: 验证码类型 LOGIN:登录 REGISTER:注册 BIND_MOBILE:绑定手机 MODIFY_PASSWORD:修改密码 SET_PAY_PWD:设置支付密码 VALIDATE_MOBILE:验证手机
+        :param mobile: 登录手机号
+        :return:
+        """
+
+        # 获取短信验证码
+        self.send_sms_code(mobile=mobile, sms_type=sms_type)
+
+        self.admin_login()
+        token = self.get_admin_token()
+
+        # 管理后台查询短信验证码
+        url = '/store/manage/user/sms/codes'
+        request = self.request_get(url=url, token=token)
+        for data in request['data']:
+            if data['mobile'] == str(mobile) and data['type'] == sms_type:
+                sms_code = data['code']
+                return sms_code
