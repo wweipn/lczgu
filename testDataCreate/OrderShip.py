@@ -56,24 +56,17 @@ def get_shop_order_delivers_goods(token, order_shop_id):
                                       token=token,
                                       params={'shopOrderId': order_shop_id})
     order_goods_list = []
+    logistics_name, logistics_code, logistics_name_code = get_logistics_info()
     # 遍历接口返回的商品信息,依次写入order_goods_list列表中
     for goods in request['data']:
-        random_int = random.randint(1000000000, 9999999999)
         order_goods_list.append({
-            'mainOrderCode': goods['mainOrderCode'],  # 主订Id
-            'shopOrderCode': goods['shopOrderCode'],  # 子订单单Id
-            'id': goods['id'],  # 商品订单Id
-            "logisticsName": "京东物流",  # 物流公司
-            "logisticsCode": "JD00" + str(random_int),  # 运单编号
-            # "logisticsCode": 'JD0037980871457',  # 运单编号
+            'mainOrderCode': goods['mainOrderCode'],  # 主订单ID
+            'shopOrderCode': goods['shopOrderCode'],  # 子订单ID
+            'id': goods['id'],  # 商品订单ID
+            "logisticsName": logistics_name,  # 物流公司
+            "logisticsCode": logistics_code,  # 运单编号
+            "logisticsNameCode": logistics_name_code,  # 物流公司编号
             'nowDeliverCount': goods['remainCount'],  # 发货数量
-            # 'nowDeliverCount': 1,  # 发货数量
-            # 'count': goods['count'],  # 商品数量
-            # 'sku': goods['sku'],  # skuId
-            # 'name': goods['name'],  # 商品名称
-            # 'thumbnail': goods['thumbnail'],  # 商品主图
-            # 'deliverCount': goods['remainCount'],  # 已发货数量
-            # 'remainCount': goods['remainCount'],  # 剩余可发货数量
         })
 
     return order_goods_list
@@ -290,19 +283,54 @@ def batch_receive(token):
         goods_receiving(token=token, order_all_id=order_all_id)
 
 
+def get_logistics_info(logistics_name='京东物流', logistics_code='JD0036682565810'):
+    """
+    获取物流单号, 用户发货方法使用
+    :param logistics_name: 物流公司
+    :param logistics_code: 物流单号
+    :return:
+    """
+    logistics_com_dic = {
+        '圆通速递': 'yuantong',
+        '顺丰速运': 'shunfeng',
+        '韵达快递': 'yunda',
+        '中通快递': 'zhongtong',
+        '邮政快递包裹': 'youzhengguonei',
+        '京东物流': 'jd',
+        '申通快递': 'shentong',
+        '百世快递': 'huitongkuaidi',
+        'EMS': 'ems',
+        '极兔速递': 'jtexpress',
+        '邮政标准快递': 'youzhengbk',
+        '德邦': 'debangwuliu',
+        '德邦快递': 'debangkuaidi',
+        '百世快运': 'baishiwuliu',
+        '宅急送': 'zhaijisong',
+        '天天快递': 'tiantian',
+        '圆通快运': 'yuantongkuaiyun',
+        '优速快递': 'youshuwuliu',
+        '韵达快运': 'yundakuaiyun',
+        'D速快递': 'dsukuaidi',
+        '联昊通': 'lianhaowuliu'
+    }
+
+    logistics_name_code = logistics_com_dic[logistics_name]
+    return logistics_name, logistics_code, logistics_name_code
+
+
 if __name__ == '__main__':
-    pass
+
+    # 主订单发货
+    order_all_delivery(order_all_id=1382629027549913090)
+
+    # 子订单发货
+    # order_shop_delivery(order_shop_id=1377530422157979650)
+
     # 用户登录
     # user_token = common.user_token(18123929299)
 
-    # 子订单发货
-    order_shop_delivery(order_shop_id=1377530422157979650)
-
-    # 主订单发货
-    # order_all_delivery(order_all_id=1379760349749764098)
-
     # 确认收货
-    # goods_receiving(token=user_token, order_all_id=1377960050575810561)
+    # goods_receiving(token=user_token, order_all_id=1382338644530016258)
 
     # 批量发货
     # batch_delivery()

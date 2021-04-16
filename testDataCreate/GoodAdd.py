@@ -11,11 +11,11 @@ import time
 
 # 连接老系统数据库
 old_db = common.Database()
-old_db.database = Config.get_db(env='old_release_goods')
+old_db.database = Config.get_db(env='old_test_goods')
 
 # 链接老系统数据库(用户)
 old_db_account = common.Database()
-old_db_account.database = Config.get_db(env='old_release_member')
+old_db_account.database = Config.get_db(env='old_test_member')
 
 # 获取品牌字典表
 brand_dic = get_brand_id_dic()
@@ -144,9 +144,10 @@ def get_goods_sku_req_vo(goods_id):
     return goods_sku_req_vo
 
 
-def new_get_goods_spu_req_vo(goods_id):
+def new_get_goods_spu_req_vo(goods_id, goods_type=None):
     """
     生成保存商品接口中商品VO的数据(数据迁移用)
+    :param goods_type: 商品类型 0:普通商品;1:臻宝商品;2.VIP商品
     :param goods_id: 老系统商品ID
     :return:
     """
@@ -167,7 +168,8 @@ def new_get_goods_spu_req_vo(goods_id):
     detail = []
     original = result[5]
     sn = result[6]
-    goods_type = 0 if result[7] == 'NORMAL' else 1
+    if goods_type is None:
+        goods_type = 0 if result[7] == 'NORMAL' else 1
 
     if result[4] != '':
         data = result[4]
@@ -239,9 +241,10 @@ def get_goods_audit_status(goods_id):
     return market_enable, is_auth, under_message
 
 
-def add_goods(goods_id, token, admin_token, audit_type=0):
+def add_goods(goods_id, token, admin_token, audit_type=0, goods_type=None):
     """
     添加商品
+    :param goods_type:
     :param goods_id: 老系统商品ID
     :param token: 商家token
     :param audit_type: 审核类型 0: 根据老系统数据库状态 其他: 审核通过
@@ -249,7 +252,7 @@ def add_goods(goods_id, token, admin_token, audit_type=0):
     :return:
     """
     while 1:
-        spu_req_vo = new_get_goods_spu_req_vo(goods_id=goods_id)  # 获取商品信息
+        spu_req_vo = new_get_goods_spu_req_vo(goods_id=goods_id, goods_type=goods_type)  # 获取商品信息
         sku_req_vo = get_goods_sku_req_vo(goods_id=goods_id)  # 获取规格信息
 
         body = {
@@ -435,14 +438,13 @@ def data_transfer():
 if __name__ == '__main__':
     # pass
     # 执行数据迁移
-    data_transfer()
+    # data_transfer()
 
     # 供应商账号注册(shop_id: 老系统供应商ID)
     # create_shop = shop_create(shop_id='48')
 
     # 供应商登录
-    # common.account.shop_login(username='Wepn', password='a123456')
-    # shop_token = common.account.get_shop_token()
+    shop_token = common.shop_token('wepn')
 
     # 根据老系统的商家ID添加商品
     # goods_data = get_shop_goods(shop_id='55', spu_type=0)
@@ -450,11 +452,11 @@ if __name__ == '__main__':
     #     add_goods(goods_id=data, token=shop_token)
 
     # 添加任意一个商品
-    # for i in range(15):
-    #     add_goods(goods_id=get_rand_goods(),
-    #               token=shop_token,
-    #               admin_token=common.admin_token(),
-    #               audit_type=1,
-    #               goods_type=2)
+    for i in range(5):
+        add_goods(goods_id=get_rand_goods(),
+                  token=shop_token,
+                  admin_token=common.admin_token(),
+                  audit_type=1,
+                  goods_type=2)
 
 

@@ -598,7 +598,7 @@ def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, s
 if __name__ == '__main__':
 
     # 登录用户账号,并获取token
-    user_token = common.user_token(mobile=19216850036)
+    user_token = common.user_token(mobile=19216850033)
     # 随机获取商品
     # goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
     # sku_id, spu_id = get_ran_goods(goods_type=0)
@@ -606,27 +606,26 @@ if __name__ == '__main__':
     for i in range(1):
         # print(f'====================第{i + 1}次执行开始=======================')
         # 立即购买(0:普通商品 1:臻宝商品 2.VIP商品)
-        # create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=1, need_pause=1,
-        #                      sku_id=None, spu_id=None,
-        #                      share_dynamic_id=None, share_user_id=None)
+        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=0, need_pause=0,
+                             sku_id=None, spu_id=None,
+                             share_dynamic_id=None, share_user_id=None)
 
         # 创建随机批量订单
-        # batch_order_rand_create(token=user_token, num=1)  # 创建单商品订单
+        # batch_order_rand_create(token=user_token, num=5)  # 创建单商品订单
 
         # 创建拼团订单
-        # create_assemble_order(token=user_token, buy_num=4, need_pause=0, sku_id=1370632366468382721,
-        #                       activity_id=1379606850739228674, team_id=None)
+        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=1370631952964534273,
+        #                       activity_id=1382607056850137089, team_id=1382608340495904769)
 
         # 创建限时抢购订单
         # create_promotion_order(token=user_token, buy_num=5, need_pause=0,
         #                        sku_id=1352086062821847042, activity_id=1379242091527393281)
 
         # 生成购物车数据
-
-        # data = '(1352081419253362689,1352064753253527554,1352064753173835778,1352081419354025985)'
-        create_cart_data(token=user_token, num=6, buy_num=1, sku_tuple=None)
+        # data = '(1369128929847152642,1369128930027507713)'
+        # create_cart_data(token=user_token, num=2, buy_num=1, sku_tuple=data)
         # 购物车商品创建订单
-        create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
+        # create_order(token=user_token, order_source=0, need_pause=0, coupon_auto_use=1)
 
         # print(f'====================第{i + 1}次执行结束=======================')
         pass
@@ -638,4 +637,4 @@ if __name__ == '__main__':
     #     batch_order_rand_create(token=data[1], num=2)
 
     # 设置支付密码
-    # set_password(mobile=13155327917, token=user_token)
+    # set_password(mobile=15295993410, token=user_token)

@@ -8,7 +8,7 @@ import Config
 
 # 连接老系统数据库
 old_db = common.Database()
-old_db.database = Config.get_db(env='old_release_goods')
+old_db.database = Config.get_db(env='old_test_goods')
 
 
 def add_brand():
