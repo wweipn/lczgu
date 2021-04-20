@@ -8,9 +8,11 @@ import time
 import random
 
 
-def order_shop_delivery(order_shop_id):
+def order_shop_delivery(order_shop_id, logistics_name='京东物流', logistics_code='JD0036682565810'):
     """
     子订单发货
+    :param logistics_code: 快递单号
+    :param logistics_name: 物流公司
     :param order_shop_id: 子订单ID
     :return:
     """
@@ -22,7 +24,8 @@ def order_shop_delivery(order_shop_id):
     shop_token = common.shop_token(shop_name)
 
     # 遍历未发货商品,分别调用接口请求
-    shop_order_delivers_goods = get_shop_order_delivers_goods(token=shop_token, order_shop_id=order_shop_id)
+    shop_order_delivers_goods = get_shop_order_delivers_goods(token=shop_token, order_shop_id=order_shop_id,
+                                                              logistics_name=logistics_name, logistics_code=logistics_code)
 
     # 判断是否存在未发货的商品,没有则返回
     if len(shop_order_delivers_goods) == 0:
@@ -45,9 +48,11 @@ def order_shop_delivery(order_shop_id):
     """.replace("'", '"').replace('None', 'null'))
 
 
-def get_shop_order_delivers_goods(token, order_shop_id):
+def get_shop_order_delivers_goods(token, order_shop_id, logistics_name='京东物流', logistics_code='JD0036682565810'):
     """
     获取未发货的商品, 包装成发货接口所需数据结构后返回
+    :param logistics_code: 物流单号
+    :param logistics_name: 物流公司名称
     :param token: 商家token
     :param order_shop_id: 子订单Id
     :return:
@@ -56,15 +61,15 @@ def get_shop_order_delivers_goods(token, order_shop_id):
                                       token=token,
                                       params={'shopOrderId': order_shop_id})
     order_goods_list = []
-    logistics_name, logistics_code, logistics_name_code = get_logistics_info()
+    logistics_name_value, logistics_code_value, logistics_name_code = get_logistics_info(logistics_name=logistics_name, logistics_code=logistics_code)
     # 遍历接口返回的商品信息,依次写入order_goods_list列表中
     for goods in request['data']:
         order_goods_list.append({
             'mainOrderCode': goods['mainOrderCode'],  # 主订单ID
             'shopOrderCode': goods['shopOrderCode'],  # 子订单ID
             'id': goods['id'],  # 商品订单ID
-            "logisticsName": logistics_name,  # 物流公司
-            "logisticsCode": logistics_code,  # 运单编号
+            "logisticsName": logistics_name_value,  # 物流公司
+            "logisticsCode": logistics_code_value,  # 运单编号
             "logisticsNameCode": logistics_name_code,  # 物流公司编号
             'nowDeliverCount': goods['remainCount'],  # 发货数量
         })
@@ -249,15 +254,21 @@ def receive_function(token, logistics_list, order_all_id):
     """.replace("'", '"'))
 
 
-def form_file_get_order_all():
-    file_path = common.get_file_path(file_name='order_all.csv', parent_path='test_file')
+def form_file_get_order_shop():
+    file_path = common.get_file_path(file_name='order_shop_ship_data.csv', parent_path='test_file')
     with open(file_path, 'r', encoding='utf-8') as OrderAll:
         order_all = csv.reader(OrderAll)
         next(order_all)
         data_list = []
         for data in order_all:
-            order_all_id = data[0]
-            data_list.append(order_all_id)
+            order_shop = data[0]
+            logistics_code = data[1]
+            logistics_name = data[2]
+            data_list.append({
+                'order_shop_id': order_shop,
+                'logistics_code': logistics_code,
+                'logistics_name': logistics_name
+            })
         return data_list
 
 
@@ -266,26 +277,19 @@ def batch_delivery():
     供应商批量发货
     :return:
     """
-    order_all_id_list = form_file_get_order_all()
-    for order_all_id in order_all_id_list:
-        # 主订单发货
-        order_all_delivery(order_all_id=order_all_id)
+    order_shop_ship_data_list = form_file_get_order_shop()
+    for order_shop_data in order_shop_ship_data_list:
+        order_shop_id = order_shop_data['order_shop_id']
+        logistics_code = order_shop_data['logistics_code']
+        logistics_name = order_shop_data['logistics_name']
+        # 子订单发货
+        print(order_shop_id, logistics_code, logistics_name)
+        # order_shop_delivery(order_shop_id=order_shop_id, logistics_code=logistics_code, logistics_name=logistics_name)
 
 
-def batch_receive(token):
+def get_logistics_info(logistics_name, logistics_code):
     """
-    用户批量确认收货
-    :return:
-    """
-    order_all_id_list = form_file_get_order_all()
-    for order_all_id in order_all_id_list:
-        # 批量收货
-        goods_receiving(token=token, order_all_id=order_all_id)
-
-
-def get_logistics_info(logistics_name='京东物流', logistics_code='JD0036682565810'):
-    """
-    获取物流单号, 用户发货方法使用
+    获取物流公司编号
     :param logistics_name: 物流公司
     :param logistics_code: 物流单号
     :return:
@@ -321,10 +325,10 @@ def get_logistics_info(logistics_name='京东物流', logistics_code='JD00366825
 if __name__ == '__main__':
 
     # 主订单发货
-    order_all_delivery(order_all_id=1382629027549913090)
+    # order_all_delivery(order_all_id=1384400415176622081)
 
-    # 子订单发货
-    # order_shop_delivery(order_shop_id=1377530422157979650)
+    # 子订单发货  :
+    order_shop_delivery(order_shop_id=1384057101519646723, logistics_code='4313855422819', logistics_name='韵达快递')
 
     # 用户登录
     # user_token = common.user_token(18123929299)
@@ -335,5 +339,3 @@ if __name__ == '__main__':
     # 批量发货
     # batch_delivery()
 
-    # 批量收货
-    # batch_receive(token=user_token)

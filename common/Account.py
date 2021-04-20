@@ -102,13 +102,13 @@ class Account(ApiRequests, Database):
         recommend_id = get_info['text']['data']['recommendId']
         print(f'账号: {mobile}，邀请码: {recommend_id}')
 
-    def admin_login(self, username='admin', password='a123456'):
+    def admin_login(self, username='admin'):
         """
         管理后台登录
         :param username: 管理后台账号
-        :param password: 管理后台密码
         :return:
         """
+        password = 'a123456' if self.host != 'https://apistore.lczgu.com' else 'Lczgu0605'
         body = {'username': username,
                 'password': password}
         res = self.request_post('/store/manage/account/login', body=body)
@@ -150,13 +150,15 @@ class Account(ApiRequests, Database):
                     token = res['rep_header']['AccessToken']
                     csv_file_writer.writerow([account, token])
 
-    def shop_login(self, username, password):
+    def shop_login(self, username, password=None):
         """
         商家登录
         :param username: 商家账号
         :param password: 商家密码
         :return:
         """
+        if password is None:
+            password = '123456' if self.host != 'https://apistore.lczgu.com' else 'zht0605'
         body = {'username': username,
                 'password': password}
         res = self.request_post('/store/seller/account/login', body=body)

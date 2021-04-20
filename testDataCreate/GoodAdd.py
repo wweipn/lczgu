@@ -105,13 +105,13 @@ def get_goods_sku_req_vo(goods_id):
             {
                 "cost": cost,  # 供货价
                 "price": price,  # 销售价
-                "linePrice": round(price * 120 / 100, 0),  # 市场价, 销售价基础+20%
+                "linePrice": round(price * 130 / 100, 0),  # 市场价, 销售价基础+30%
                 "retailPrice": price,  # 建议零售价,取零售价
                 "profitPrice": cost,  # 成本价,取供货价
                 # "retailPrice": round(price * 105 / 100, 2),  # 建议零售价, 销售价基础+5%
                 # "profitPrice": round(cost * 110 / 100, 2),  # 成本价, 供货价基础+10%
-                "enableQuantity": enable_quantity,  # 库存
                 # "enableQuantity": 0,  # 库存
+                "enableQuantity": enable_quantity,  # 库存
                 "name": "",  # sku名称
                 "warnQuantity": 20,  # 预警库存
                 "categoryId": category_id,
@@ -435,6 +435,43 @@ def data_transfer():
         print(f'商家【{shop_name}】商品添加完成')
 
 
+def goods_detail(token, goods_id):
+    """
+    管理后台商品详情
+    :param token:
+    :param goods_id: spu_id
+    :return:
+    """
+    url = f'/store/manage/goodsManager/get?spuId={goods_id}'
+    request = common.req.request_get(token=token, url=url)
+    data = request['data']
+    return data
+
+
+def goods_update(token, goods_id, goods_type):
+    """
+    商品信息修改
+    :param token:
+    :param goods_id: spu_id
+    :param goods_type: 商品类型: 0: 普通商品, 1: 臻宝商品, 2: VIP商品
+    :return:
+    """
+
+    goods_detail_data = goods_detail(token=token, goods_id=goods_id)
+
+    if goods_type == 1:
+        for sku in goods_detail_data['goodsSkuReqVO']:
+            price = sku['price']
+            sku['needPayAmount'] = round(price * 0.1, 2)
+            sku['needPayZhenBao'] = int(price * 100)
+
+        goods_detail_data['goodsSpuReqVO']['type'] = 1
+
+        url = '/store/manage/goodsManager'
+        update = common.req.request_put(token=token, url=url, body=goods_detail_data)
+        print(update['text'])
+
+
 if __name__ == '__main__':
     # pass
     # 执行数据迁移
@@ -444,7 +481,7 @@ if __name__ == '__main__':
     # create_shop = shop_create(shop_id='48')
 
     # 供应商登录
-    shop_token = common.shop_token('wepn')
+    # shop_token = common.shop_token('wepn')
 
     # 根据老系统的商家ID添加商品
     # goods_data = get_shop_goods(shop_id='55', spu_type=0)
@@ -452,11 +489,13 @@ if __name__ == '__main__':
     #     add_goods(goods_id=data, token=shop_token)
 
     # 添加任意一个商品
-    for i in range(5):
-        add_goods(goods_id=get_rand_goods(),
-                  token=shop_token,
-                  admin_token=common.admin_token(),
-                  audit_type=1,
-                  goods_type=2)
+    # for i in range(5):
+    #     add_goods(goods_id=get_rand_goods(),
+    #               token=shop_token,
+    #               admin_token=common.admin_token(),
+    #               audit_type=1,
+    #               goods_type=2)
 
+    # goods_update(token=common.admin_token(), goods_id=1370618534173884418, goods_type=1)
+    auto_goods_audit(token=common.admin_token(), spu_id=1370618534173884418, audit_status=1, status=3)
 

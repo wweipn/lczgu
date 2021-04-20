@@ -8,7 +8,6 @@ def get_host(env='dev'):
     if env == 'dev':
         # return 'http://192.168.1.15:8001'  # 吕文波本地环境
         # return 'http://192.168.1.43:8001'  # 江平本地环境
-        # return 'http://192.168.1.39:8001'  # 何星本地环境
         # return 'http://192.168.1.117:8001'  # 汤升本地环境
         return 'http://192.168.1.8:8001'  # 开发环境
 
@@ -33,12 +32,9 @@ def get_db(env='dev'):
 
     db_data_dic = {
         'dev': 'store',
-        'test': 'store_test',
         'prod': 'store_prod',
         'old_test_goods': 'test_lczgu_shop_goods',
-        'old_test_member': 'test_lczgu_shop_member',
-        'old_release_goods': 'store_prod_lczgu_shop_goods_prod',
-        'old_release_member': 'store_prod_lczgu_shop_member_prod'
+        'old_test_member': 'test_lczgu_shop_member'
     }
 
     result = db_data_dic[env]

@@ -56,6 +56,6 @@ if __name__ == '__main__':
     money_type: 类型 0:可提现余额, 1:活动余额, 2:臻宝
     update_type: 修改类型 1:扣除, 2:添加
     """
-    update_user_money(token=common.admin_token(), mobile=18123999999, money_type=1, update_type=2, money=999)
+    update_user_money(token=common.admin_token(), mobile=18123929299, money_type=0, update_type=2, money=10000)
 
     # send_coupon(account_id=1354604046874423298, coupon_id=1377905938366816257)

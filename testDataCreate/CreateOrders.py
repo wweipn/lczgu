@@ -595,7 +595,7 @@ def create_buy_now_order(goods_type, buy_num, coupon_auto_use=0, need_pause=0, s
 if __name__ == '__main__':
 
     "登录用户账号,并获取token"
-    user_token = common.user_token(mobile=19216850033)
+    user_token = common.user_token(mobile=18123929299)
 
     """
     随机获取商品
@@ -606,8 +606,8 @@ if __name__ == '__main__':
     for i in range(1):
 
         "立即购买(0:普通商品 1:臻宝商品 2.VIP商品)"
-        create_buy_now_order(goods_type=0, buy_num=1, coupon_auto_use=0, need_pause=1, sku_id=1369128970276048897, spu_id=1369128970120859649,
-                             share_dynamic_id=None, share_user_id=None)
+        create_buy_now_order(goods_type=0, coupon_auto_use=0, need_pause=0, share_dynamic_id=None, share_user_id=None,
+                             buy_num=2, sku_id=None, spu_id=None)
 
         "创建随机批量订单"
         # batch_order_rand_create(token=user_token, num=5)  # 创建单商品订单

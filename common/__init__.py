@@ -22,7 +22,7 @@ def user_token(mobile):
 
 
 def shop_token(shop_name):
-    account.shop_login(username=shop_name, password='123456')
+    account.shop_login(username=shop_name, password=None)
     token = account.get_shop_token()
     return token
 

@@ -215,16 +215,16 @@ def assemble(day, add_num, goods_num, chief_type, team_type):
 if __name__ == '__main__':
 
     # 第二件半价活动创建
-    half_price_activity(goods_num=100)
+    # half_price_activity(goods_num=100)
 
     # 满减活动创建
     # full_discount(goods_num=10)
 
     # 拼团活动创建
-    # assemble(day=0, add_num=2, goods_num=15, chief_type=0, team_type=0)  # 拼团活动创建
+    assemble(day=1, add_num=2, goods_num=15, chief_type=0, team_type=0)  # 拼团活动创建
 
     # 限时抢购活动创建
-    # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=10)
+    # flash_sale(days=1, time_line='00:00:00-09:59:59', goods_num=15)
     # flash_sale(days=1, time_line='10:00:00-13:59:59', goods_num=15)
     # flash_sale(days=1, time_line='14:00:00-19:59:59', goods_num=15)
     # flash_sale(days=1, time_line='20:00:00-23:59:59', goods_num=15)
