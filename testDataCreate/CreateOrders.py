@@ -273,6 +273,7 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
         goods_total = discounts_info['data']['goodsTotal']  # 商品合计
         total_dis = discounts_info['data']['totalDis'] if discounts_info['data']['totalDis'] is not None else 0  # 优惠合计
         activity_red = discounts_info['data']['activityAccount']  # 活动余额抵扣
+        need_pay_zhenBao = discounts_info['data']['needPayZhenBao']  # 臻宝抵扣
         coupon_red = discounts_info['data']['coupon'] if discounts_info['data']['coupon'] is not None else 0  # 优惠券抵扣
         coupon_id = discounts_info['data']['couponId']  # 优惠券ID
         freight = discounts_info['data']['freight']  # 运费
@@ -294,7 +295,7 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
     优惠券减免金额: {coupon_red}
     优惠券ID: {coupon_id}
     运费: {freight}
-    臻宝兑换: {zbs}
+    臻宝抵扣: {need_pay_zhenBao}
     合计: {total}(计算结果:{result})
     =====================
             """.replace("'", '"').replace('None', 'null'))
@@ -597,28 +598,22 @@ if __name__ == '__main__':
     "登录用户账号,并获取token"
     user_token = common.user_token(mobile=18123929299)
 
-    """
-    随机获取商品
-    goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
-    """
-    # sku_id, spu_id = get_ran_goods(goods_type=0)
-
     for i in range(1):
 
         "立即购买(0:普通商品 1:臻宝商品 2.VIP商品)"
-        create_buy_now_order(goods_type=0, coupon_auto_use=0, need_pause=0, share_dynamic_id=None, share_user_id=None,
-                             buy_num=2, sku_id=None, spu_id=None)
+        # create_buy_now_order(goods_type=2, coupon_auto_use=0, need_pause=0, share_dynamic_id=None, share_user_id=None,
+        #                      buy_num=1, sku_id=None, spu_id=None)
 
         "创建随机批量订单"
         # batch_order_rand_create(token=user_token, num=5)  # 创建单商品订单
 
         "创建拼团订单"
-        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=1370631952964534273,
-        #                       activity_id=1382607056850137089, team_id=1382608340495904769)
+        create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=None,
+                              activity_id=None, team_id=None)
 
         "创建限时抢购订单"
-        # create_promotion_order(token=user_token, buy_num=5, need_pause=0,
-        #                        sku_id=1352086062821847042, activity_id=1379242091527393281)
+        # create_promotion_order(token=user_token, buy_num=1, need_pause=0,
+        #                        sku_id=None, activity_id=None)
 
         "生成购物车数据"
         # data = '(1369128930027507713,1369128970133442562)'

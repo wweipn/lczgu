@@ -6,7 +6,7 @@ import common
 from datetime import datetime, timedelta
 
 
-def get_activity_goods(num, activity_type=1, activity_num=5, limit_num=5):
+def get_activity_goods(num, activity_type=1, activity_num=9999, limit_num=5):
     """
     生成创建活动时所需的商品数据
     :param limit_num: 限购数量(限时抢购用)
@@ -20,12 +20,15 @@ def get_activity_goods(num, activity_type=1, activity_num=5, limit_num=5):
     SELECT
         id,
         goods_id,
-        price
+        price,
+        spu_name
     FROM
         goods_sku where goods_id in (SELECT
         a.id
         FROM
-    ( SELECT id FROM goods_spu WHERE STATUS = 3 AND type = 0 ORDER BY RAND( ) LIMIT {num} ) AS a)
+        ( SELECT
+    id 
+    FROM goods_spu WHERE STATUS = 3 AND type = 0 ORDER BY RAND( ) LIMIT {num} ) AS a)
     """
 
     result = common.db.select_all(sql=sql)
@@ -36,6 +39,7 @@ def get_activity_goods(num, activity_type=1, activity_num=5, limit_num=5):
         sku_id = goods[0]
         spu_id = goods[1]
         price = goods[2]
+        goods_name = goods[3]
         if activity_type == 1:
             goods_list.append({"goodsId": spu_id, "skuId": sku_id})
         elif activity_type == 2:
@@ -44,12 +48,14 @@ def get_activity_goods(num, activity_type=1, activity_num=5, limit_num=5):
                 "skuId": sku_id,
                 "activityNum": activity_num,
                 "limitNum": limit_num,
+                "goodsName": goods_name,
                 "sort": 99,
                 "price": round(float(price * 80 / 100), 2)})
         elif activity_type == 3:
             goods_list.append({
                 "activityNum": activity_num,
                 "goodsId": spu_id,
+                "goodsName": goods_name,
                 "price": round(float(price * 70 / 100), 2),
                 "skuId": sku_id,
                 "sort": 99
@@ -214,18 +220,18 @@ def assemble(day, add_num, goods_num, chief_type, team_type):
 
 if __name__ == '__main__':
 
-    # 第二件半价活动创建
+    "第二件半价活动创建"
     # half_price_activity(goods_num=100)
 
-    # 满减活动创建
+    "满减活动创建"
     # full_discount(goods_num=10)
 
-    # 拼团活动创建
-    assemble(day=1, add_num=2, goods_num=15, chief_type=0, team_type=0)  # 拼团活动创建
+    "拼团活动创建"
+    assemble(day=0, add_num=2, goods_num=15, chief_type=1, team_type=0)  # 拼团活动创建
 
-    # 限时抢购活动创建
-    # flash_sale(days=1, time_line='00:00:00-09:59:59', goods_num=15)
-    # flash_sale(days=1, time_line='10:00:00-13:59:59', goods_num=15)
-    # flash_sale(days=1, time_line='14:00:00-19:59:59', goods_num=15)
-    # flash_sale(days=1, time_line='20:00:00-23:59:59', goods_num=15)
+    "限时抢购活动创建"
+    # flash_sale(days=3, time_line='00:00:00-09:59:59', goods_num=30)
+    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=15)
+    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=15)
+    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=15)
 

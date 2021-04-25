@@ -469,7 +469,7 @@ def goods_update(token, goods_id, goods_type):
 
         url = '/store/manage/goodsManager'
         update = common.req.request_put(token=token, url=url, body=goods_detail_data)
-        print(update['text'])
+        common.api_print(name='修改商品数据', url=url, data=goods_detail_data, result=update)
 
 
 if __name__ == '__main__':
@@ -496,6 +496,6 @@ if __name__ == '__main__':
     #               audit_type=1,
     #               goods_type=2)
 
-    # goods_update(token=common.admin_token(), goods_id=1370618534173884418, goods_type=1)
-    auto_goods_audit(token=common.admin_token(), spu_id=1370618534173884418, audit_status=1, status=3)
+    goods_update(token=common.admin_token(), goods_id=1369826919729635329, goods_type=1)
+    auto_goods_audit(token=common.admin_token(), spu_id=1369826921017286657, audit_status=1, status=3)
 

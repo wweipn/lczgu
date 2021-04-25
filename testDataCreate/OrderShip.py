@@ -4,8 +4,6 @@
 
 import common
 import csv
-import time
-import random
 
 
 def order_shop_delivery(order_shop_id, logistics_name='京东物流', logistics_code='JD0036682565810'):
@@ -24,8 +22,10 @@ def order_shop_delivery(order_shop_id, logistics_name='京东物流', logistics_
     shop_token = common.shop_token(shop_name)
 
     # 遍历未发货商品,分别调用接口请求
-    shop_order_delivers_goods = get_shop_order_delivers_goods(token=shop_token, order_shop_id=order_shop_id,
-                                                              logistics_name=logistics_name, logistics_code=logistics_code)
+    shop_order_delivers_goods = get_shop_order_delivers_goods(token=shop_token,
+                                                              order_shop_id=order_shop_id,
+                                                              logistics_name=logistics_name,
+                                                              logistics_code=logistics_code)
 
     # 判断是否存在未发货的商品,没有则返回
     if len(shop_order_delivers_goods) == 0:
@@ -61,7 +61,8 @@ def get_shop_order_delivers_goods(token, order_shop_id, logistics_name='京东�
                                       token=token,
                                       params={'shopOrderId': order_shop_id})
     order_goods_list = []
-    logistics_name_value, logistics_code_value, logistics_name_code = get_logistics_info(logistics_name=logistics_name, logistics_code=logistics_code)
+    logistics_name_value, logistics_code_value, logistics_name_code = get_logistics_info(
+        logistics_name=logistics_name, logistics_code=logistics_code)
     # 遍历接口返回的商品信息,依次写入order_goods_list列表中
     for goods in request['data']:
         order_goods_list.append({
@@ -324,18 +325,14 @@ def get_logistics_info(logistics_name, logistics_code):
 
 if __name__ == '__main__':
 
-    # 主订单发货
-    # order_all_delivery(order_all_id=1384400415176622081)
+    "主订单发货"
+    order_all_delivery(order_all_id=1386207728157888514)
 
-    # 子订单发货  :
-    order_shop_delivery(order_shop_id=1384057101519646723, logistics_code='4313855422819', logistics_name='韵达快递')
+    "子订单发货"
+    # order_shop_delivery(order_shop_id=1384057101519646723, logistics_code='4313855422819', logistics_name='韵达快递')
 
-    # 用户登录
-    # user_token = common.user_token(18123929299)
+    "确认收货"
+    # goods_receiving(token=common.user_token(18123929299), order_all_id=1385525047548043265)
 
-    # 确认收货
-    # goods_receiving(token=user_token, order_all_id=1382338644530016258)
-
-    # 批量发货
+    "批量发货"
     # batch_delivery()
-

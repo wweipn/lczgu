@@ -23,7 +23,7 @@ if __name__ == '__main__':
     """
     推荐人注册
     """
-    # user_register(r_mobile=19216850225, count=12)
+    user_register(r_mobile=13538952833, count=1)
 
     """
     无推荐人注册
@@ -33,10 +33,10 @@ if __name__ == '__main__':
     """
     指定参数注册
     """
-    account_list = [
-
-    ]
-
-    for account in account_list:
-        common.account.user_register(mobile=account, recommend_id='1')
-        time.sleep(0.1)
+    # account_list = [
+    #
+    # ]
+    #
+    # for account in account_list:
+    #     common.account.user_register(mobile=account, recommend_id='1')
+    #     time.sleep(0.1)
