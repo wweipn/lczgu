@@ -25,7 +25,7 @@ def get_order_all_status(order_id):
     # 如果查询到的结果为空,不执行后面的代码,返回空
     if not get_order_shop_status_result:
         print('父订单不存在')
-        return None
+        return
 
     else:
         # 定义父订单状态字典
