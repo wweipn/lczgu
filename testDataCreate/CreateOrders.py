@@ -482,7 +482,6 @@ def create_activity_order(activity_type, **kwargs):
     """
     创建活动订单
     :param activity_type: 0: 拼团, 1: 限时抢购
-    :param kwargs:
     :return:
     """
     if 'sku_id' not in kwargs or 'activity_id' not in kwargs:
@@ -491,18 +490,19 @@ def create_activity_order(activity_type, **kwargs):
             create_order(sku_id=sku_id, activity_id=activity_id, order_source=1, activity_type=0, **kwargs)
         except TypeError:
             print(f'没有进行中的{"拼团" if activity_type == 0 else "限时抢购"}活动')
+            return
     else:
         create_order(order_source=1, activity_type=0, **kwargs)
 
 
 def create_buy_now_order(goods_type, **kwargs):
     """
-    创建立即购买订单
+    创建普通订单
     :param goods_type: 商品类型 0:普通商品 1:臻宝商品 2.VIP商品
     :return:
     """
 
-    if 'sku_id' not in kwargs or 'spu_id' not in kwargs:
+    if 'sku_id' not in kwargs and 'spu_id' not in kwargs:
         sku_id, spu_id = get_ran_goods(goods_type=goods_type)
         create_order(sku_id=sku_id, spu_id=spu_id, order_source=2, **kwargs)
 
@@ -518,19 +518,20 @@ if __name__ == '__main__':
     for i in range(1):
 
         "立即购买(0:普通商品 1:臻宝商品 2.VIP商品)"
-        create_buy_now_order(goods_type=2, coupon_auto_use=0, buy_num=1)
+        create_buy_now_order(token=user_token, goods_type=2, coupon_auto_use=0, need_pause=0, buy_num=1)
 
         "创建拼团订单"
-        create_activity_order(token=user_token, activity_type=0, buy_num=1)
+        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=None,
+        #                       activity_id=None, team_id=None)
 
         "创建限时抢购订单"
-        create_activity_order(token=user_token, activity_type=1, buy_num=1)
+        # create_activity_order(token=user_token, activity_type=1, buy_num=1)
 
         "生成购物车数据"
-        # data = '1369128930027507713,1369128970133442562'
-        # create_cart_data(token=user_token, num=2, buy_num=1, sku_ids=data)
+        # data = '(1369128930027507713,1369128970133442562)'
+        # create_cart_data(token=user_token, num=2, buy_num=1, sku_tuple=data)
         "购物车商品创建订单"
-        create_order(token=user_token, order_source=0)
+        # create_order(token=user_token, order_source=0)
 
     "多账号创建订单"
     # common.account.user_login(source=1)
