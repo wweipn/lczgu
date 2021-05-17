@@ -38,14 +38,7 @@ def order_shop_delivery(order_shop_id, logistics_name='京东物流', logistics_
     request = common.req.request_post(url='/store/seller/order/upStatusDeliver',
                                       body=body,
                                       token=shop_token)
-    print(f"""
-    商家【{shop_name}】发货(/store/seller/order/upStatusDeliver)
-    请求：
-    {body}
-
-    返回：
-    {request['text']}
-    """.replace("'", '"').replace('None', 'null'))
+    common.api_print(name=f'供应商-{shop_name}发货', url=request['url'], data=body, result=request)
 
 
 def get_shop_order_delivers_goods(token, order_shop_id, logistics_name='京东物流', logistics_code='JD0036682565810'):
@@ -245,14 +238,7 @@ def receive_function(token, logistics_list, order_all_id):
 
     # 调用确认收货接口
     request = common.req.request_post(token=token, url=url, body=body)
-    print(f"""
-    【确认收货】({url})
-    请求
-    {body}
-
-    返回
-    {request['text']}
-    """.replace("'", '"'))
+    common.api_print(name='确认收货', url=request['url'], data=body, result=request)
 
 
 def form_file_get_order_shop():
@@ -323,16 +309,41 @@ def get_logistics_info(logistics_name, logistics_code):
     return logistics_name, logistics_code, logistics_name_code
 
 
+def finish_order(token, order_id):
+    body = {
+        "orderCode": order_id
+    }
+    request = common.req.request_post(url='/store/api/order/CSFinishOrder', token=token, body=body)
+    common.api_print(name='手动完成订单', url=request['url'], data=body, result=request)
+
+
 if __name__ == '__main__':
 
-    "主订单发货"
-    order_all_delivery(order_all_id=1386207728157888514)
-
     "子订单发货"
-    # order_shop_delivery(order_shop_id=1384057101519646723, logistics_code='4313855422819', logistics_name='韵达快递')
-
-    "确认收货"
-    # goods_receiving(token=common.user_token(18123929299), order_all_id=1385525047548043265)
+    # order_shop_delivery(order_shop_id=1386661361287032833, logistics_code='4313855422819', logistics_name='韵达快递')
 
     "批量发货"
     # batch_delivery()
+
+    order_all_ids = [
+        1393104968034070529,
+        1393104970907168770,
+        1393104965706231810,
+        1393104959775485954,
+        1393104962577281025,
+        1393104957447647234,
+        1393104951424626689,
+        1393104954461302785,
+        1393104946714423298,
+        1393104949600104449
+    ]
+    user_token = common.user_token(15295993410)
+    for i in order_all_ids:
+        "主订单发货"
+        order_all_delivery(order_all_id=i)
+
+        "确认收货"
+        goods_receiving(token=user_token, order_all_id=i)
+
+        "完成订单"
+        # finish_order(token=user_token, order_id=i)

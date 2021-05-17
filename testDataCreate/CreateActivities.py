@@ -6,7 +6,7 @@ import common
 from datetime import datetime, timedelta
 
 
-def get_activity_goods(num, activity_type=1, activity_num=9999, limit_num=5):
+def get_activity_goods(num, activity_type=1, activity_num=100, limit_num=5):
     """
     生成创建活动时所需的商品数据
     :param limit_num: 限购数量(限时抢购用)
@@ -30,6 +30,18 @@ def get_activity_goods(num, activity_type=1, activity_num=9999, limit_num=5):
     id 
     FROM goods_spu WHERE STATUS = 3 AND type = 0 ORDER BY RAND( ) LIMIT {num} ) AS a)
     """
+
+    sql1 = f"""
+    SELECT
+       id,
+       goods_id,
+       price,
+       spu_name
+    FROM
+       goods_sku
+    WHERE
+        id in (1391670749768556545,1391670749948911617,1391670749894385665,1391670750003437569)
+       """
 
     result = common.db.select_all(sql=sql)
 
@@ -77,7 +89,7 @@ def half_price_activity(goods_num):
     # 定义开始时间和结束时间
     now = datetime.now()
     start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    end_time = (now + timedelta(days=300)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
     body = {
@@ -105,7 +117,6 @@ def full_discount(goods_num, limit_num=100):
     :return:
     """
 
-    admin_token = common.admin_token()
     full_reduction_detail = []
     # 填写满减活动信息
     while 1:
@@ -115,7 +126,8 @@ def full_discount(goods_num, limit_num=100):
         reduce_price = input('输入减免金额: ')
         full_reduction_detail.append({
             "addPrice": add_price,
-            "reducePrice": reduce_price
+            "reducePrice": reduce_price,
+            "limitNum": limit_num
         })
 
     # 获取商品数据
@@ -124,8 +136,7 @@ def full_discount(goods_num, limit_num=100):
     # 定义开始时间和结束时间
     now = datetime.now()
     start_time = (now + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
-    # end_time = '2021-03-29 23:59:59'
+    end_time = (now + timedelta(days=300)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
     body = {
@@ -133,21 +144,16 @@ def full_discount(goods_num, limit_num=100):
         "startTime": start_time,
         "endTime": end_time,
         "modeType": 0,
-        "limitNum": limit_num,
         "goodsList": goods_list,
         "addReduce": full_reduction_detail
     }
 
     # 请求创建活动接口
     request = common.req.request_post(url='/store/manage/promotion/full-discount/saveFullDiscount',
-                                      token=admin_token,
+                                      token=common.admin_token(),
                                       body=body)
 
-    print(f"""
-    {str(body).replace("'", '"')}
-    {request['text']}
-
-    """)
+    common.api_print(name='创建满减活动', url=request['url'], data=body, result=request)
 
 
 def flash_sale(time_line, days=0, goods_num=10):
@@ -163,11 +169,11 @@ def flash_sale(time_line, days=0, goods_num=10):
     now = datetime.now()
     start_time = (now + timedelta(days=days)).strftime('%Y-%m-%d')
     goods_list = get_activity_goods(activity_type=2, num=goods_num)
-    seckill_name = f"限时抢购({start_time} {time_line})"
+    activity_name = f"限时抢购({start_time} {time_line})"
 
     body = {
         "startTime": start_time,
-        "seckillName": seckill_name,
+        "seckillName": activity_name,
         "timeLine": time_line,
         "goodsList": goods_list
     }
@@ -175,11 +181,14 @@ def flash_sale(time_line, days=0, goods_num=10):
     request = common.req.request_post(url='/store/manage/promotion/time-limit/saveTimeLimit',
                                       body=body,
                                       token=admin_token)
-    print(f"""
-    {str(body).replace("'", '"')} 
-    {request['text']}
-
-    """)
+    if request['code'] != 200:
+        print(f'活动 - {activity_name}添加失败, code: {request["code"]}, 错误信息: {request["desc"]}')
+        if request['code'] in (8068, 8069):
+            return
+        else:
+            flash_sale(time_line, days, goods_num)
+    else:
+        common.api_print(name='创建限时抢购活动', url=request['url'], data=body, result=request)
 
 
 def assemble(day, add_num, goods_num, chief_type, team_type):
@@ -192,7 +201,6 @@ def assemble(day, add_num, goods_num, chief_type, team_type):
     :param goods_num: 添加的商品数量
     :return:
     """
-
     admin_token = common.admin_token()
     now = datetime.now()
     goods_list = get_activity_goods(activity_type=3, num=goods_num)
@@ -214,8 +222,14 @@ def assemble(day, add_num, goods_num, chief_type, team_type):
     request = common.req.request_post(url=url,
                                       body=body,
                                       token=admin_token)
-
-    common.api_print(name='创建拼团活动', url=url, data=body, result=request)
+    if request['code'] != 200:
+        print(f'活动 - {name}添加失败, code: {request["code"]} 错误信息: {request["desc"]}')
+        if request['code'] in (8068, 8069):
+            return
+        else:
+            assemble(day, add_num, goods_num, chief_type, team_type)
+    else:
+        common.api_print(name='创建拼团活动', url=request['url'], data=body, result=request)
 
 
 if __name__ == '__main__':
@@ -224,14 +238,16 @@ if __name__ == '__main__':
     # half_price_activity(goods_num=100)
 
     "满减活动创建"
-    # full_discount(goods_num=10)
+    # full_discount(goods_num=10, limit_num=1)
 
     "拼团活动创建"
-    assemble(day=0, add_num=2, goods_num=15, chief_type=1, team_type=0)  # 拼团活动创建
+    assemble(day=6, add_num=3, goods_num=15, chief_type=1, team_type=0)  # 拼团活动创建
+    assemble(day=6, add_num=2, goods_num=15, chief_type=0, team_type=1)  # 拼团活动创建
 
     "限时抢购活动创建"
-    # flash_sale(days=3, time_line='00:00:00-09:59:59', goods_num=30)
-    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=15)
-    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=15)
-    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=15)
+    # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=10)
+    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=10)
+    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=10)
+    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=10)
 
+    # print(common.account.get_admin_token())

@@ -3,5 +3,9 @@
 # @Author: Waipang
 
 import common
+import csv
 
-common.user_token(mobile=15818520620)
+
+if __name__ == '__main__':
+    common.account.user_login(source=1)
+

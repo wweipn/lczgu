@@ -96,9 +96,9 @@ def batch_audit():
         url = '/store/manage/goodsManager/upStatus'
         body = {
             'id': spu_id,
-            'auditStatus': 2,
-            'status': 4,
-            'underMessage': '老系统数据迁移, 统一处理为: 下架, 审核拒绝'
+            'auditStatus': 1,
+            'status': 3,
+            'underMessage': 'VIP商品上架'
         }
         audit = common.req.request_put(url=url, body=body,
                                        token=admin_token)

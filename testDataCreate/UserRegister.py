@@ -23,7 +23,7 @@ if __name__ == '__main__':
     """
     推荐人注册
     """
-    user_register(r_mobile=13538952833, count=1)
+    user_register(r_mobile=None, count=5000)
 
     """
     无推荐人注册
