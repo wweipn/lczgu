@@ -46,7 +46,7 @@ class Account(ApiRequests, Database):
         FROM 
             user_account 
         WHERE 
-            mobile LIKE '19216850%' 
+            mobile LIKE '19350%' 
         ORDER BY mobile desc LIMIT 1
         """)[0]
         new_mobile = str(int(last_number) + 1)

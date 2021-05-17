@@ -502,7 +502,7 @@ def create_buy_now_order(goods_type, **kwargs):
     :return:
     """
 
-    if 'sku_id' not in kwargs and 'spu_id' not in kwargs:
+    if 'sku_id' not in kwargs or 'spu_id' not in kwargs:
         sku_id, spu_id = get_ran_goods(goods_type=goods_type)
         create_order(sku_id=sku_id, spu_id=spu_id, order_source=2, **kwargs)
 
@@ -513,16 +513,23 @@ def create_buy_now_order(goods_type, **kwargs):
 if __name__ == '__main__':
 
     "登录用户账号,并获取token"
-    user_token = common.user_token(mobile=18123929299)
+    user_token = common.user_token(mobile=15295993410)
+    list1 = [
+        1,
+        2,
+        3,
+        4,
+        5
+    ]
 
-    for i in range(1):
+    for i in list1:
 
         "立即购买(0:普通商品 1:臻宝商品 2.VIP商品)"
-        create_buy_now_order(token=user_token, goods_type=2, coupon_auto_use=0, need_pause=0, buy_num=1)
+        create_buy_now_order(token=user_token, goods_type=0, coupon_auto_use=0,  buy_num=1, spu_id=1391670749542064129, sku_id=1391670749550452737,
+                             share_dynamic_id=i)
 
         "创建拼团订单"
-        # create_assemble_order(token=user_token, buy_num=1, need_pause=0, sku_id=None,
-        #                       activity_id=None, team_id=None)
+        # create_activity_order(token=user_token, activity_type=0, buy_num=1, sku_id=1351869367649923073, team_id=1390591462992326657, activity_id=1390591260285808641)
 
         "创建限时抢购订单"
         # create_activity_order(token=user_token, activity_type=1, buy_num=1)
