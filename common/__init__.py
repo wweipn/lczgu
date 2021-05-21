@@ -37,12 +37,14 @@ def api_print(name, url, result, data=None):
     :return:
     """
 
-    print(f"""
+    print_str = f"""
     【{name}】({url})
     请求参数
     {data}
 
     返回结果
     {result['text']}
-    --------------------------------------------------------------------------------------------------
-    """.replace("'", '"'))
+    """
+    print_str = print_str.replace("'", '"')
+    print_str = print_str.replace('None', 'null')
+    print(print_str)

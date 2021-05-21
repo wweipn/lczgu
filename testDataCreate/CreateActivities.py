@@ -6,7 +6,7 @@ import common
 from datetime import datetime, timedelta
 
 
-def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=5, sku_ids=None):
+def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=100, sku_ids=None):
     """
     生成创建活动时所需的商品数据
     :param sku_ids: sku集合, 格式: '1,2,3,4'
@@ -283,11 +283,11 @@ def create_single_reduce(is_over_lap=0, **kwargs):
     :return:
     """
     now = datetime.now()  # 当前时间
-    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d  %H:%M:%S')  # 开始时间
+    start_time = (now + timedelta(minutes=0.5)).strftime('%Y-%m-%d  %H:%M:%S')  # 开始时间
     end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d  %H:%M:%S')  # 结束时间
 
     body = {
-        'name': 0,
+        'name': f'单品立减({start_time})',
         'isOverlap': is_over_lap,
         'skuList': get_activity_goods(activity_type=5, **kwargs),
         'startTime': start_time,
@@ -328,26 +328,26 @@ def create_full_amount_choose_num(threshold_amount, threshold_num, limit_buy_num
 if __name__ == '__main__':
 
     "创建第二件半价活动"
-    half_price_activity(goods_num=100)
+    # half_price_activity(goods_num=100)
 
     "创建满减活动"
-    full_discount(goods_num=10, limit_num=1)
+    # full_discount(goods_num=10, limit_num=1)
 
     "创建单品立减活动"
-    create_single_reduce()
+    create_single_reduce(sku_ids='13956299144886231')
 
     "创建N元选M件活动"
-    create_full_amount_choose_num(threshold_amount=100, threshold_num=3)
+    # create_full_amount_choose_num(threshold_amount=100, threshold_num=3)
 
     "拼团活动创建"
-    assemble(day=6, add_num=3, chief_type=1, team_type=0)  # 拼团活动创建
+    # assemble(day=6, add_num=3, chief_type=1, team_type=0)  # 拼团活动创建
     # assemble(day=6, add_num=2, goods_num=15, chief_type=0, team_type=1)  # 拼团活动创建
 
     "限时抢购活动创建"
-    flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=10)
+    # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=10)
     # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=10)
     # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=10)
     # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=10)
 
     "活动余额特殊抵扣配置添加"
-    create_special_deduct(member_ratio=22, vip_ratio=33, sku_ids='1370631960673665025')
+    # create_special_deduct(member_ratio=22, vip_ratio=33, sku_ids='1370631960673665025')

@@ -73,9 +73,9 @@ def coupon_create(vip=None, limit_num=None, create_num=None, user_activity_money
     # use_scope = random.randint(0, 2)
 
     coupon_price = random.randint(10, 50)
-    coupon_price = 88.88
+    # coupon_price = 88.88
     coupon_threshold_price = random.randint(51, 200)
-    coupon_threshold_price = 100
+    # coupon_threshold_price = 100
     # coupon_price = float(input('请输入优惠券金额:\n'))
     # coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
 

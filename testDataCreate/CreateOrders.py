@@ -276,20 +276,58 @@ def create_order(token, order_source, coupon_auto_use=0, need_pause=0, buy_num=N
         freight = discounts_info['data']['freight']  # 运费
         total = discounts_info['data']['allTotal']  # 合计
         result = round((goods_total + freight) - total_dis - activity_red - coupon_red, 2)  # 计算出来的金额
-        print(f"""
-        =======价格信息=======
-        商品合计: {goods_total}
-        折扣优惠: {total_dis}
-        活动余额抵扣: {activity_red}
-        优惠券减免金额: {coupon_red}
-        优惠券ID: {coupon_id}
-        运费: {freight}
-        臻宝抵扣: {need_pay_zhen_bao}
-        合计: {total}(计算结果:{result})
-        =====================
-            """.replace("'", '"').replace('None', 'null'))
+        discounts_detail = ''
+        # 判断返回的优惠明细是否为空,不为空则解析这个列表
+        if discounts_info['data']['activityDiscountInfoVOS'] is not None:
+            for discount_list in discounts_info['data']['activityDiscountInfoVOS']:
+                for discounts_key, discounts_value in discount_list.items():
+                    discounts_detail += f'{discounts_value} '
+        # print(f"""
+        # =======价格信息=======
+        # 商品合计: {goods_total}
+        # {f'''---------------------------
+        # 优惠明细
+        # {discounts_detail}''' if discounts_detail != '' else ''}
+        # {f'''总优惠: {total_dis}
+        # ---------------------------''' if total_dis > 0 else ''}
+        # {f'优惠后金额: {goods_total - total_dis}' if total_dis > 0 else ''}
+        # {f'活动余额抵扣: {activity_red}, 抵扣比例: {round(activity_red / (goods_total - total_dis) * 100, 2)}%' if activity_red > 0 else ''}
+        # {f'臻宝抵扣: {need_pay_zhen_bao}' if need_pay_zhen_bao is not None else ''}
+        # {f'优惠券减免金额: {coupon_red}' if coupon_red > 0 else ''}
+        # {f'优惠券ID: {coupon_id}' if coupon_id is not None else ''}
+        # {f'运费: {freight}' if freight > 0 else ''}
+        # 合计: {total}(计算结果:{result})
+        # =====================
+        # """.replace("'", '"').replace('None', 'null'))
+
+        if discounts_detail != '':
+            print(f"""
+            优惠明细
+            {discounts_detail}
+            总优惠: {total_dis}
+            优惠后金额: {goods_total - total_dis}
+            """)
+
+        if activity_red > 0:
+            print(f'''
+            活动余额抵扣: {activity_red}, 抵扣比例: {round(activity_red / (goods_total - total_dis) * 100, 2)}%
+            ''')
+
+        if need_pay_zhen_bao is not None:
+            print(f'臻宝抵扣: {need_pay_zhen_bao}')
+
+        if coupon_red > 0:
+            print(f'''
+            优惠券减免金额: {coupon_red}
+            优惠券ID: {coupon_id}
+            ''')
+        if freight > 0:
+            print(f"""
+            运费: {freight}
+            """)
     except TypeError:
-        common.api_print(name='获取订单结算信息', url=discounts_info['url'], data=body, result=discounts_info)
+        print('下单失败')
+        return
 
     # 提交订单前的数据处理
 
@@ -389,6 +427,7 @@ def get_ran_goods(goods_type):
         AND spu.STATUS = 3 -- '商品状态 3：上架；4：下架'
         AND spu.type = {goods_type} -- '商品类型 0:普通商品;1:臻宝商品;2.VIP商品'
         AND spu.is_deleted = 0 -- 非逻辑删除状态
+        AND sku.is_deleted = 0 -- 非逻辑删除状态
     ORDER BY rand( ) -- 随机排序
     LIMIT 1
     """)
@@ -487,12 +526,12 @@ def create_activity_order(activity_type, **kwargs):
     if 'sku_id' not in kwargs or 'activity_id' not in kwargs:
         try:
             sku_id, activity_id = get_assemble_sku() if activity_type == 0 else get_promotion_sku()
-            create_order(sku_id=sku_id, activity_id=activity_id, order_source=1, activity_type=0, **kwargs)
+            create_order(sku_id=sku_id, activity_id=activity_id, order_source=1, activity_type=activity_type, **kwargs)
         except TypeError:
             print(f'没有进行中的{"拼团" if activity_type == 0 else "限时抢购"}活动')
             return
     else:
-        create_order(order_source=1, activity_type=0, **kwargs)
+        create_order(order_source=1, activity_type=activity_type, **kwargs)
 
 
 def create_buy_now_order(goods_type, **kwargs):
@@ -513,26 +552,19 @@ def create_buy_now_order(goods_type, **kwargs):
 if __name__ == '__main__':
 
     "登录用户账号,并获取token"
-    user_token = common.user_token(mobile=15295993410)
-    list1 = [
-        1,
-        2,
-        3,
-        4,
-        5
-    ]
+    user_token = common.user_token(mobile=18123929299)
+    # user_token = common.user_token(mobile=19216850009)
 
-    for i in list1:
+    for i in range(1):
 
         "立即购买(0:普通商品 1:臻宝商品 2.VIP商品)"
-        create_buy_now_order(token=user_token, goods_type=0, coupon_auto_use=0,  buy_num=1, spu_id=1391670749542064129, sku_id=1391670749550452737,
-                             share_dynamic_id=i)
+        create_buy_now_order(token=user_token, goods_type=0, coupon_auto_use=0, need_pause=1, buy_num=1)
 
         "创建拼团订单"
-        # create_activity_order(token=user_token, activity_type=0, buy_num=1, sku_id=1351869367649923073, team_id=1390591462992326657, activity_id=1390591260285808641)
+        # create_activity_order(token=user_token, activity_type=0, buy_num=1, need_pause=1)
 
         "创建限时抢购订单"
-        # create_activity_order(token=user_token, activity_type=1, buy_num=1)
+        # create_activity_order(token=user_token, activity_type=1, buy_num=1, need_pause=0, activity_id=1394202793421680642, sku_id=1370631960673665025)
 
         "生成购物车数据"
         # data = '(1369128930027507713,1369128970133442562)'

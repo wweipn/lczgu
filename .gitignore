@@ -9,8 +9,5 @@
 /report/
 /allure-report/
 /allure-results/
-/test_file/admin_token.csv
-/test_file/shop_token.csv
-/test_file/user_list.csv
-/test_file/user_token.csv
+/test_file/*
 

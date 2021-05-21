@@ -4,8 +4,7 @@
 
 import common
 import csv
-
+from datetime import datetime, timedelta
 
 if __name__ == '__main__':
-    common.account.user_login(source=1)
-
+    pass
