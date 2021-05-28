@@ -65,16 +65,17 @@ def coupon_create(vip=None, limit_num=None, create_num=None, user_activity_money
     :param create_num: 优惠券数量
     :return:
     """
-    time_type = int(input('时间类型(0: 固定时间, 1: 相对时间): \n'))
-    # time_type = random.randint(0, 1)
-    coupon_type = int(input('获取方式(0: 商品详情页领取, 1: VIP赠送到账, 2: 注册赠送到账, 3: 后台发放): \n'))
-    # coupon_type = 0
-    use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
+    # time_type = int(input('时间类型(0: 固定时间, 1: 相对时间): \n'))
+    time_type = 1
+    # coupon_type = int(input('获取方式(0: 商品详情页领取, 1: VIP赠送到账, 2: 注册赠送到账, 3: 后台发放): \n'))
+    coupon_type = 0
+    # use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
     # use_scope = random.randint(0, 2)
+    use_scope = 2
 
     coupon_price = random.randint(10, 50)
     # coupon_price = 88.88
-    coupon_threshold_price = random.randint(51, 200)
+    coupon_threshold_price = random.randint(51, 100)
     # coupon_threshold_price = 100
     # coupon_price = float(input('请输入优惠券金额:\n'))
     # coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
@@ -134,6 +135,7 @@ def coupon_create(vip=None, limit_num=None, create_num=None, user_activity_money
     elif use_scope == 2:
         # 部分商品
         body['scopeId'] = get_goods()
+        body['scopeId'] = '13916725996285870'
         body['title'] = body['title'] + '(部分商品)'
 
     common.account.admin_login()
@@ -170,7 +172,7 @@ def send_coupon(coupon_id, account_id):
 if __name__ == '__main__':
     "优惠券创建"
     for i in range(1):
-        coupon_create(vip=None, create_num=None, limit_num=None)
+        coupon_create(vip=None, create_num=None, limit_num=1)
         time.sleep(0.2)
 
     "领取优惠券"

@@ -19,13 +19,21 @@ def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=100,
 
     sql = f"""
     SELECT
-        id,
-        goods_id,
-        price,
-        spu_name
+        sku.id,
+        sku.goods_id,
+        sku.price,
+        sku.spu_name
     FROM
-        goods_sku where {f'goods_id in (SELECT  a.id FROM( SELECT id FROM goods_spu WHERE STATUS = 3 AND type = 0 ORDER BY RAND( ) LIMIT {num} ) AS a)'
-    if sku_ids is None else f'id in ({sku_ids})'}
+        goods_sku sku
+        LEFT JOIN goods_spu spu ON spu.id = sku.goods_id
+    where {f'sku.goods_id in (SELECT  a.id FROM( SELECT id FROM goods_spu WHERE STATUS = 3 AND type = 0 ORDER BY RAND( ) LIMIT {num} ) AS a)'
+    if sku_ids is None else f'sku.id in ({sku_ids})'}
+    AND
+        sku.is_deleted = 0
+    AND
+        spu.STATUS = 3
+    AND
+        spu.type = 0
     """
     result = common.db.select_all(sql=sql)
 
@@ -80,7 +88,7 @@ def get_activity_goods(num=10, activity_type=1, activity_num=100, limit_num=100,
         # N元选M件商品VO
         elif activity_type == 6:
             goods_list.append({
-                'goodsId': spu_id,
+                'spuId': spu_id,
                 'skuId': sku_id,
                 'limitBuyNum': limit_num
             })
@@ -101,7 +109,7 @@ def half_price_activity(is_over_lap=0, **kwargs):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=0.5)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d %H:%M:%S')
     end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -149,7 +157,7 @@ def full_discount(limit_num=100, is_over_lap=0, **kwargs):
 
     # 定义开始时间和结束时间
     now = datetime.now()
-    start_time = (now + timedelta(minutes=0.5)).strftime('%Y-%m-%d %H:%M:%S')
+    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d %H:%M:%S')
     end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 定义请求参数
@@ -157,8 +165,9 @@ def full_discount(limit_num=100, is_over_lap=0, **kwargs):
         "name": f"满减活动({start_time})",
         "startTime": start_time,
         "endTime": end_time,
-        "modeType": 0,
+        "modeType": 0,  # 优惠形式: 满减
         "goodsList": goods_list,
+        'isOverlap': is_over_lap,
         "addReduce": full_reduction_detail
     }
 
@@ -254,8 +263,8 @@ def create_special_deduct(member_ratio=15, vip_ratio=30, **kwargs):
     """
 
     now = datetime.now()  # 当前时间
-    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d  %H:%M:%S')  # 开始时间
-    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d  %H:%M:%S')  # 结束时间
+    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d %H:%M:%S')  # 开始时间
+    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')  # 结束时间
     name = f'活动特殊抵扣(普通会员: {member_ratio}, VIP: {vip_ratio})'  # 活动名称
     member_ratio = member_ratio  # 普通会员抵扣比例
     vip_ratio = vip_ratio  # VIP抵扣比例
@@ -283,8 +292,8 @@ def create_single_reduce(is_over_lap=0, **kwargs):
     :return:
     """
     now = datetime.now()  # 当前时间
-    start_time = (now + timedelta(minutes=0.5)).strftime('%Y-%m-%d  %H:%M:%S')  # 开始时间
-    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d  %H:%M:%S')  # 结束时间
+    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d %H:%M:%S')  # 开始时间
+    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')  # 结束时间
 
     body = {
         'name': f'单品立减({start_time})',
@@ -308,16 +317,18 @@ def create_full_amount_choose_num(threshold_amount, threshold_num, limit_buy_num
     """
 
     now = datetime.now()  # 当前时间
-    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d  %H:%M:%S')  # 开始时间
-    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d  %H:%M:%S')  # 结束时间
+    start_time = (now + timedelta(minutes=0.2)).strftime('%Y-%m-%d %H:%M:%S')  # 开始时间
+    end_time = (now + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')  # 结束时间
 
     body = {
-        'isCanUseActivityMoney': is_over_lap,
-        'name': f'{threshold_amount}元选{threshold_num}件活动({start_time})',
-        'startTime': start_time,
-        'endTime': end_time,
-        'thresholdAmount': threshold_amount,
-        'thresholdNum': threshold_num,
+        'fullAmountChooseNumVO': {
+            'isCanUseActivityMoney': 0 if is_over_lap == 1 else 0,
+            'name': f'{threshold_amount}元选{threshold_num}件活动({start_time})',
+            'startTime': start_time,
+            'endTime': end_time,
+            'thresholdAmount': threshold_amount,
+            'thresholdNum': threshold_num,
+        },
         'fullAmountChooseNumGoodsVOList': get_activity_goods(activity_type=6, limit_num=limit_buy_num, **kwargs)
     }
 
@@ -328,26 +339,28 @@ def create_full_amount_choose_num(threshold_amount, threshold_num, limit_buy_num
 if __name__ == '__main__':
 
     "创建第二件半价活动"
-    # half_price_activity(goods_num=100)
+    # half_price_activity(sku_ids='1397166696753532929')
 
     "创建满减活动"
-    # full_discount(goods_num=10, limit_num=1)
+    # full_discount(limit_num=0, sku_ids='1391670749768556545')
 
     "创建单品立减活动"
-    create_single_reduce(sku_ids='13956299144886231')
+    # create_single_reduce()
 
     "创建N元选M件活动"
-    # create_full_amount_choose_num(threshold_amount=100, threshold_num=3)
+    # create_full_amount_choose_num(threshold_amount=50, threshold_num=3, sku_ids='1391670749835665409')
+
+    "创建活动余额特殊抵扣活动"
+    # create_special_deduct(member_ratio=15, vip_ratio=30, sku_ids='13956299144886231')
 
     "拼团活动创建"
-    # assemble(day=6, add_num=3, chief_type=1, team_type=0)  # 拼团活动创建
-    # assemble(day=6, add_num=2, goods_num=15, chief_type=0, team_type=1)  # 拼团活动创建
+    assemble(day=0, add_num=3, chief_type=1, team_type=0, sku_ids='1397166696606732289')  # 拼团活动创建
+    assemble(day=0, add_num=2, chief_type=0, team_type=1, sku_ids='1397166696753532929')  # 拼团活动创建
 
     "限时抢购活动创建"
-    # flash_sale(days=0, time_line='00:00:00-09:59:59', goods_num=10)
-    # flash_sale(days=0, time_line='10:00:00-13:59:59', goods_num=10)
-    # flash_sale(days=0, time_line='14:00:00-19:59:59', goods_num=10)
-    # flash_sale(days=0, time_line='20:00:00-23:59:59', goods_num=10)
+    # flash_sale(days=3, time_line='00:00:00-09:59:59')
+    # flash_sale(days=3, time_line='10:00:00-13:59:59')
+    # flash_sale(days=0, time_line='14:00:00-19:59:59', limit_num=5)
+    # flash_sale(days=3, time_line='20:00:00-23:59:59')
 
-    "活动余额特殊抵扣配置添加"
-    # create_special_deduct(member_ratio=22, vip_ratio=33, sku_ids='1370631960673665025')
+

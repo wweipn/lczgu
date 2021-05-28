@@ -99,7 +99,7 @@ def apply_post_sale(token, order_goods, post_sale_type):
 if __name__ == '__main__':
 
     "申请退款"
-    # apply_refund(token=common.user_token(18123929299), order_goods=1390550214411612161)
+    apply_refund(token=common.user_token(18123929299), order_goods=1396715867386970113)
 
     "申请售后: 1: 退款, 2: 退货退款, 3: 换货"
     # apply_post_sale(token=common.user_token(18123929299), order_goods=1390550214411612161, post_sale_type=1)

@@ -320,24 +320,21 @@ def finish_order(token, order_id):
 if __name__ == '__main__':
 
     "子订单发货"
-    # order_shop_delivery(order_shop_id=1386661361287032833, logistics_code='4313855422819', logistics_name='韵达快递')
+    # order_shop_delivery(order_shop_id=1396715867231780866, logistics_code='4313855422819', logistics_name='韵达快递')
 
     "批量发货"
     # batch_delivery()
 
     order_all_ids = [
-        1394840617145618433,
-        1394840619435708417,
-        1394840614704533505,
-        1394840578922926082
+        1397113366492745729
     ]
-    user_token = common.user_token(13538952833)
+    user_token = common.user_token(18123929299)
     for i in order_all_ids:
         "主订单发货"
         order_all_delivery(order_all_id=i)
 
         "确认收货"
-        goods_receiving(token=user_token, order_all_id=i)
+        # goods_receiving(token=user_token, order_all_id=i)
 
         "完成订单"
         # finish_order(token=user_token, order_id=i)
