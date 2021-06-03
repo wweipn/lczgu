@@ -14,7 +14,7 @@ class Database:
         初始化数据库连接
         """
         self.conn = pymysql.connect(
-            host='192.168.1.10' if self.database != 'store_prod' else 'rm-wz9v045a7509h21e7zo.mysql.rds.aliyuncs.com',
+            host='192.168.1.10' if self.database not in ('store_prod', 'store_test') else 'rm-wz9v045a7509h21e7zo.mysql.rds.aliyuncs.com',
             port=3306,
             user='wuweipeng',
             password='Wuweipeng997',

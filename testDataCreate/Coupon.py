@@ -21,18 +21,7 @@ def get_category(num=100):
         goods_category
     WHERE 
         level = 3
-    # ORDER BY RAND()
-    # LIMIT {num}
-    and id in (13515060933055774,13515062230521774,13515056768405504,13515062259336642,13515060168308326,
-13515060470256271,13515059996719349,13515060068400005,13515061609932554,13515060586019061,13515061551254241,
-13515062071977082,13515062316085575,13515060268552192,13515061712231628,13515060614750044,13515060297157345,
-13515058669641564,13515060182736732,13515060053971599,13515060484684677,13515061106196643,13515061220659200,
-13515061176744837,13515062244782407,13515062202084392,13515061669407784,13515060097214873,13515061034180444,
-13515062173437296,13515062301782999,13515061464222433,13515058843705180,13515061091516579,13515061697803223,
-13515065764013178,13515058640239493,13515061507633479,13515058742664396,13515060412752363,13515060398533672,
-13515062043246100,13515060239947038,13515066285281280,13515059968114196,13515062187739873,13515060890273873,
-13515067366195363,13515057331406929,13515061826694184,13515061421146931,13515061941198684,13515059491221831,
-13515061726366433,13515058712759009,13515059693471170) 
+    LIMIT {num}
     """)
     category_detail = ''
     for category in result:
@@ -67,20 +56,27 @@ def get_goods(num=30):
     return goods_detail[:-1]
 
 
-def coupon_create(vip=None, limit_num=None, create_num=None):
+def coupon_create(vip=None, limit_num=None, create_num=None, user_activity_money=0):
     """
-    添加优惠券
+    创建优惠券
+    :param user_activity_money: 使用活动余额
+    :param vip: 空,
+    :param limit_num: 限领数量
+    :param create_num: 优惠券数量
     :return:
     """
     # time_type = int(input('时间类型(0: 固定时间, 1: 相对时间): \n'))
-    time_type = random.randint(0, 1)
+    time_type = 1
     # coupon_type = int(input('获取方式(0: 商品详情页领取, 1: VIP赠送到账, 2: 注册赠送到账, 3: 后台发放): \n'))
     coupon_type = 0
     # use_scope = int(input('使用范围(0: 全品, 1: 分类, 2: 商品): \n'))
-    use_scope = random.randint(0, 2)
+    # use_scope = random.randint(0, 2)
+    use_scope = 2
 
     coupon_price = random.randint(10, 50)
-    coupon_threshold_price = random.randint(51, 200)
+    # coupon_price = 88.88
+    coupon_threshold_price = random.randint(51, 100)
+    # coupon_threshold_price = 100
     # coupon_price = float(input('请输入优惠券金额:\n'))
     # coupon_threshold_price = float(input('请输入优惠券门槛:\n'))
 
@@ -91,7 +87,8 @@ def coupon_create(vip=None, limit_num=None, create_num=None):
         "scopeDescription": "优惠券使用范围描述",
         "activityDescription": "优惠券描述",
         "useScope": use_scope,
-        "type": coupon_type
+        "type": coupon_type,
+        "isOverlap": user_activity_money
     }
 
     # 优惠券时间类型
@@ -138,11 +135,11 @@ def coupon_create(vip=None, limit_num=None, create_num=None):
     elif use_scope == 2:
         # 部分商品
         body['scopeId'] = get_goods()
+        body['scopeId'] = '13916725996285870'
         body['title'] = body['title'] + '(部分商品)'
 
     common.account.admin_login()
     admin_token = common.account.get_admin_token()
-    print(str(body).replace("'", '"'))
     request = common.req.request_post(url='/store/manage/promotion/coupon/addSaveCoupon',
                                       token=admin_token,
                                       body=body)
@@ -174,8 +171,8 @@ def send_coupon(coupon_id, account_id):
 
 if __name__ == '__main__':
     "优惠券创建"
-    for i in range(32):
-        coupon_create(vip=None, create_num=None, limit_num=None)
+    for i in range(1):
+        coupon_create(vip=None, create_num=None, limit_num=1)
         time.sleep(0.2)
 
     "领取优惠券"

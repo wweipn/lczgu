@@ -3,5 +3,8 @@
 # @Author: Waipang
 
 import common
+import csv
+from datetime import datetime, timedelta
 
-common.user_token(mobile=15818520620)
+if __name__ == '__main__':
+    pass
